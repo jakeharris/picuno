@@ -24,17 +24,19 @@ SPECIAL_RANKS = {
   [14] = 'F'
 }
 
-
-
 function _init()
   cls()
 
   deck = generate_deck()
   deck = shuffle(deck)
+  
   hand = {}
-  add(hand, draw(deck))
-  add(hand, draw(deck))
+  for i = 0, 6 do
+    add(hand, draw(deck))
+  end
+
   print_deck(deck)
+  render_hand(hand)
 end
 
 function _update()
