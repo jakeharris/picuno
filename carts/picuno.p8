@@ -24,9 +24,14 @@ SPECIAL_RANKS = {
   [14] = 'F'
 }
 
+deck = {}
+hand = {}
+cursor = 0
+
 function _init()
   cls()
 
+  deck = {}
   deck = generate_deck()
   deck = shuffle(deck)
   
@@ -34,6 +39,8 @@ function _init()
   for i = 0, 6 do
     add(hand, draw(deck))
   end
+
+  cursor = 0
 
   print_deck(deck)
   render_hand(hand)
@@ -47,8 +54,9 @@ end
 
 function _draw()
   cls()
-  print_deck(deck)
-  render_hand(hand)
+  --print_deck(deck)
+  --render_hand(hand)
+  render_cursor(cursor, hand)
 end
 
 function get_display_rank(rank)
@@ -58,7 +66,6 @@ function get_display_rank(rank)
     return SPECIAL_RANKS[rank]
   end
 end
-
 
 function render_card(card, x, y)
   rectfill(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, COLORS[card.color])
@@ -70,6 +77,12 @@ function render_hand(cards)
   for index, card in pairs(cards) do 
     render_card(card, 4 + ((index - 1) * (CARD_CONSTS.width + 2)), 96 + 4) -- a little more than 3/4s down the screen 
   end
+end
+
+function render_cursor(cursor, hand)
+  card_width = CARD_CONSTS.width + 2 -- 1-pixel border on each side. should this be in the constant?
+  x = 4 + (cursor * card_width + (card_width / 2))
+  spr(2, x, 96 - 10)
 end
 
 function generate_deck()
