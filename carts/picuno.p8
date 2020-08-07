@@ -80,9 +80,10 @@ function render_hand(cards)
 end
 
 function render_cursor(cursor, hand)
-  card_width = CARD_CONSTS.width + 2 -- 1-pixel border on each side. should this be in the constant?
-  x = 4 + (cursor * card_width + (card_width / 2))
-  spr(2, x, 96 - 10)
+  local card_width = CARD_CONSTS.width + 2 -- 1-pixel border on each side. should this be in the constant?
+  local x = 4 + (cursor * card_width + (card_width / 2)) - 4
+  local y = 96 - 4
+  spr(2, x, y)
 end
 
 function generate_deck()
