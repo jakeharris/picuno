@@ -50,6 +50,18 @@ function _update()
   if btnp(4) then
     add(hand, draw(deck))
   end
+
+  if btnp(1) then
+    if cursor < #hand - 1 then
+      cursor += 1
+    end
+  end
+
+  if btnp(0) then
+    if cursor > 0 then
+      cursor -= 1
+    end
+  end
 end
 
 function _draw()
