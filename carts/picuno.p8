@@ -54,8 +54,8 @@ end
 
 function _draw()
   cls()
-  --print_deck(deck)
-  --render_hand(hand)
+  print_deck(deck)
+  render_hand(hand)
   render_cursor(cursor, hand)
 end
 
