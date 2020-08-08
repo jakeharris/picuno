@@ -29,6 +29,7 @@ hand = {}
 discard = {}
 cursor = 1
 leftmost = 1
+debug_string = ''
 
 function _init()
   cls()
@@ -89,6 +90,8 @@ function _draw()
   render_cursor(cursor, hand)
   render_scroll_arrows(leftmost, hand)
   render_discard(discard)
+
+  render_debug(debug_string)
 end
 
 function get_display_rank(rank)
@@ -222,6 +225,10 @@ function sort(seq, comparator) -- bubble sort
   until done
 
   return seq
+end
+
+function render_debug(string)
+  print(string, 128 - 64, 4, 14)
 end
 
 __gfx__
