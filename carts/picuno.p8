@@ -62,8 +62,22 @@ function _update()
   end
 
   if btnp(4) then -- z/action/square button
-    played_card = del(hand, hand[leftmost + cursor - 1])
-    add(discard, played_card)
+    selected_card = hand[leftmost + cursor - 1]
+    if can_play(selected_card, discard[#discard]) then
+      played_card = del(hand, selected_card)
+      add(discard, played_card)
+      -- if we played the rightmost card and we have more cards 
+      -- than we are displaying, scroll left one
+      -- if we played the rightmost card and we can't scroll left,
+      -- move the cursor left one
+      if leftmost > 1 and cursor == 7 and leftmost == (#hand + 1) - 6 then
+        leftmost -= 1 
+      elseif cursor == #hand + 1 then
+        cursor -= 1
+      end
+    else
+      -- play an ernnt sound
+    end
   end
 
   if btnp(1) then -- right
@@ -189,6 +203,22 @@ function compare_cards(a, b)
   bv = b.color * 25 + b.rank
 
   return av - bv
+end
+
+function can_play(selected, discard)
+  if selected.color == 4 then -- wild
+    return true
+  end
+
+  if discard.color == 4 then -- if we haven't implemented wild color selection behavior yet...
+    return true
+  end
+
+  if selected.color == discard.color or selected.rank == discard.rank then
+    return true
+  end
+
+  return false
 end
 
 -- LIBRARY FUNCTIONS
