@@ -175,6 +175,20 @@ function subseq(seq, from, to)
   return new_seq
 end
 
+function sort(seq, comparator) -- bubble sort
+  repeat 
+    local done = true
+    for i = 1, #seq - 1 do
+      if comparator(seq[i], seq[i+1]) > 0 then
+        seq[i], seq[i+1] = seq[i+1], seq[i]
+        done = false
+      end
+    end
+  until done
+
+  return seq
+end
+
 __gfx__
 00000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000077000000777770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
