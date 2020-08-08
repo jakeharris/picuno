@@ -77,6 +77,7 @@ function _update()
       end
     else
       -- play an ernnt sound
+      sfx(0)
     end
   end
 
