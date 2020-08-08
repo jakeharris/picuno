@@ -135,7 +135,7 @@ function render_scroll_arrows(leftmost, hand)
 end
 
 function render_discard(discard)
-  render_card(discard[1], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
+  render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
 end
 
 function generate_deck()
