@@ -153,6 +153,22 @@ function ceil(x)
   return -flr(-x)
 end
 
+function subseq(seq, from, to)
+  new_seq = {}
+
+  if to == nil then
+    to = #seq
+  end
+
+  for k,v in pairs(seq) do
+    if k > to then break end
+    if k >= from then
+      add(new_seq, v)
+    end
+  end
+
+  return new_seq
+end
 
 __gfx__
 00000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
