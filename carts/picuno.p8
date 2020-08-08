@@ -60,7 +60,7 @@ function _update()
     hand = sort(hand, compare_cards)
   end
 
-  if btnp(1) then
+  if btnp(1) then -- right
     if cursor == 7 then
       if leftmost < #hand - 6 then leftmost += 1 end
     else
@@ -68,7 +68,7 @@ function _update()
     end
   end
 
-  if btnp(0) then
+  if btnp(0) then -- left
     if cursor == 1 then
       if leftmost > 1 then leftmost -= 1 end
     else
