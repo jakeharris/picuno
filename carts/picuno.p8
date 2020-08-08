@@ -77,6 +77,7 @@ function _draw()
   print_deck(deck)
   render_hand(hand, cursor, leftmost)
   render_cursor(cursor, hand)
+  render_scroll_arrows(leftmost, hand)
 end
 
 function get_display_rank(rank)
@@ -110,6 +111,16 @@ function render_cursor(cursor, hand)
   local x = ((cursor - 1) * card_width + (card_width / 2)) - 4
   local y = 96 - 4
   spr(2, x, y)
+end
+
+function render_scroll_arrows(leftmost, hand)
+  if leftmost > 1 then
+    spr(1, -3, 96 - 5, 1, 1, true) -- left arrow
+  end
+
+  if leftmost < #hand - 6 then
+    spr(1, 128 - 8, 96 - 5, 1, 1, false) -- right arrow
+  end
 end
 
 function generate_deck()
