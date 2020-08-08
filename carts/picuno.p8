@@ -40,6 +40,7 @@ function _init()
   for i = 1, 7 do
     add(hand, draw(deck))
   end
+  hand = sort(hand, compare_cards)
 
   cursor = 1
   leftmost = 1
@@ -51,6 +52,7 @@ end
 function _update()
   if btnp(4) then
     add(hand, draw(deck))
+    hand = sort(hand, compare_cards)
   end
 
   if btnp(1) then
@@ -151,6 +153,13 @@ function print_deck(deck)
   for index, card in pairs(deck) do
     print(get_display_rank(card.rank), flr((index - 1) / 10) * 10, ((index - 1) % 10) * 6, COLORS[card.color])
   end
+end
+
+function compare_cards(a, b)
+  av = a.color * 25 + a.rank
+  bv = b.color * 25 + b.rank
+
+  return av - bv
 end
 
 -- LIBRARY FUNCTIONS
