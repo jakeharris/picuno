@@ -67,7 +67,7 @@ end
 function _draw()
   cls()
   print_deck(deck)
-  render_hand(hand)
+  render_hand(hand, cursor)
   render_cursor(cursor, hand)
 end
 
@@ -85,9 +85,16 @@ function render_card(card, x, y)
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
 end
 
-function render_hand(cards)
+function render_hand(cards, cursor)
+  local leftmost = 0
   for index, card in pairs(cards) do 
-    render_card(card, 4 + ((index - 1) * (CARD_CONSTS.width + 2)), 96 + 4) -- a little more than 3/4s down the screen 
+    zero_index = index - 1
+    x = 4 + (zero_index * (CARD_CONSTS.width + 2))
+    y = 96 + 4 -- a little more than 3/4s down the screen 
+    if zero_index == cursor then
+      y -= 1
+    end
+    render_card(card, x, y) 
   end
 end
 
