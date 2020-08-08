@@ -26,6 +26,7 @@ SPECIAL_RANKS = {
 
 deck = {}
 hand = {}
+discard = {}
 cursor = 1
 leftmost = 1
 
@@ -47,6 +48,10 @@ function _init()
 
   print_deck(deck)
   render_hand(hand, cursor, leftmost)
+
+  discard = {}
+  add(discard, draw(deck))
+  render_discard(discard)
 end
 
 function _update()
@@ -78,6 +83,7 @@ function _draw()
   render_hand(hand, cursor, leftmost)
   render_cursor(cursor, hand)
   render_scroll_arrows(leftmost, hand)
+  render_discard(discard)
 end
 
 function get_display_rank(rank)
@@ -121,6 +127,10 @@ function render_scroll_arrows(leftmost, hand)
   if leftmost < #hand - 6 then
     spr(1, 128 - 8, 96 - 5, 1, 1, false) -- right arrow
   end
+end
+
+function render_discard(discard)
+  render_card(discard[1], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
 end
 
 function generate_deck()
