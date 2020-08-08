@@ -69,7 +69,7 @@ function _update()
   if btnp(1) then -- right
     if cursor == 7 then
       if leftmost < #hand - 6 then leftmost += 1 end
-    else
+    elseif cursor < #hand then
       cursor += 1
     end
   end
