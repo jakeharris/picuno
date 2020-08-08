@@ -55,9 +55,14 @@ function _init()
 end
 
 function _update()
-  if btnp(4) then
+  if btnp(3) then -- down (not something we actually expect to use; debugging only)
     add(hand, draw(deck))
     hand = sort(hand, compare_cards)
+  end
+
+  if btnp(4) then -- z/action/square button
+    played_card = del(hand, hand[leftmost + cursor - 1])
+    add(discard, played_card)
   end
 
   if btnp(1) then -- right
