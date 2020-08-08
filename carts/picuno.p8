@@ -26,7 +26,8 @@ SPECIAL_RANKS = {
 
 deck = {}
 hand = {}
-cursor = 0
+cursor = 1
+leftmost = 1
 
 function _init()
   cls()
@@ -36,14 +37,15 @@ function _init()
   deck = shuffle(deck)
   
   hand = {}
-  for i = 0, 6 do
+  for i = 1, 7 do
     add(hand, draw(deck))
   end
 
-  cursor = 0
+  cursor = 1
+  leftmost = 1
 
   print_deck(deck)
-  render_hand(hand)
+  render_hand(hand, cursor, leftmost)
 end
 
 function _update()
@@ -52,13 +54,17 @@ function _update()
   end
 
   if btnp(1) then
-    if cursor < #hand - 1 then
+    if cursor == 7 then
+      if leftmost < #hand - 6 then leftmost += 1 end
+    else
       cursor += 1
     end
   end
 
   if btnp(0) then
-    if cursor > 0 then
+    if cursor == 1 then
+      if leftmost > 1 then leftmost -= 1 end
+    else
       cursor -= 1
     end
   end
@@ -67,7 +73,7 @@ end
 function _draw()
   cls()
   print_deck(deck)
-  render_hand(hand, cursor)
+  render_hand(hand, cursor, leftmost)
   render_cursor(cursor, hand)
 end
 
@@ -85,22 +91,21 @@ function render_card(card, x, y)
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
 end
 
-function render_hand(cards, cursor)
-  local leftmost = 0
-  for index, card in pairs(cards) do 
-    zero_index = index - 1
-    x = 4 + (zero_index * (CARD_CONSTS.width + 2))
-    y = 96 + 4 -- a little more than 3/4s down the screen 
-    if zero_index == cursor then
+function render_hand(hand, cursor, leftmost)
+  local visible_cards = subseq(hand, leftmost, leftmost + 6)
+  for index, card in pairs(visible_cards) do 
+    local x = (index - 1) * (CARD_CONSTS.width + 2)
+    local y = 96 + 4 -- a little more than 3/4s down the screen 
+    if index == cursor then
       y -= 1
     end
-    render_card(card, x, y) 
+    render_card(card, x, y)
   end
 end
 
 function render_cursor(cursor, hand)
   local card_width = CARD_CONSTS.width + 2 -- 1-pixel border on each side. should this be in the constant?
-  local x = 4 + (cursor * card_width + (card_width / 2)) - 4
+  local x = ((cursor - 1) * card_width + (card_width / 2)) - 4
   local y = 96 - 4
   spr(2, x, y)
 end
