@@ -29,6 +29,7 @@ hand = {}
 discard = {}
 cursor = 1
 leftmost = 1
+is_wild_selection_mode = false
 debug_string = ''
 
 function _init()
@@ -44,6 +45,7 @@ function _init()
   end
   hand = sort(hand, compare_cards)
 
+  is_wild_selection_mode = false
   cursor = 1
   leftmost = 1
 
@@ -53,6 +55,7 @@ function _init()
   discard = {}
   add(discard, draw(deck))
   render_discard(discard)
+  
 end
 
 function _update()
@@ -74,6 +77,10 @@ function _update()
         leftmost -= 1 
       elseif cursor == #hand + 1 then
         cursor -= 1
+      end
+
+      if played_card.color == 4 then
+        is_wild_selection_mode = true
       end
     else
       -- play an ernnt sound
@@ -102,11 +109,14 @@ function _draw()
   cls()
   print_deck(deck)
   render_hand(hand, cursor, leftmost)
-  render_cursor(cursor, hand)
   render_scroll_arrows(leftmost, hand)
   render_discard(discard)
 
-  render_wild_boxes()
+  if is_wild_selection_mode then
+    render_wild_selection(wild_cursor)
+  else 
+    render_cursor(cursor, hand)
+  end
 
   render_debug(debug_string)
 end
@@ -169,6 +179,10 @@ function render_wild_boxes()
     local box_y = y + (i * (h + bm))
     rectfill(x, box_y, x + w, box_y + h, COLORS[i])
   end
+end
+
+function render_wild_selection(cursor)
+  render_wild_boxes(cursor)
 end
 
 function generate_deck()
