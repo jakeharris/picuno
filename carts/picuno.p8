@@ -30,6 +30,7 @@ discard = {}
 cursor = 1
 leftmost = 1
 is_wild_selection_mode = false
+wild_cursor = 1
 debug_string = ''
 
 function _init()
@@ -45,9 +46,10 @@ function _init()
   end
   hand = sort(hand, compare_cards)
 
-  is_wild_selection_mode = false
   cursor = 1
   leftmost = 1
+  is_wild_selection_mode = false
+  wild_cursor = 1
 
   print_deck(deck)
   render_hand(hand, cursor, leftmost)
@@ -168,20 +170,25 @@ function render_discard(discard)
   render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
 end
 
-function render_wild_boxes()
+function render_wild_boxes(cursor)
   local x = 64 + (CARD_CONSTS.width / 2) + 2  -- to the right of the discard
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   local w = 3
   local h = 3
   local bm = 2
 
-  for i = 0, 3 do
-    local box_y = y + (i * (h + bm))
-    rectfill(x, box_y, x + w, box_y + h, COLORS[i])
+  for i = 1, 4 do
+    local box_x = x
+    if i == cursor then box_x += 1 end
+    local box_y = y + ((i - 1) * (h + bm))
+    rectfill(x, box_y, x + w, box_y + h, COLORS[i - 1])
   end
 end
 
 function render_wild_selection(cursor)
+  local x = 64 + (CARD_CONSTS.width / 2) + 2 + 4  -- to the right of the discard, and the wild boxes
+  local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
+  spr(3, x, y + ((cursor - 1) * (3 + 2))) -- 3 + 2 from wild box height and bottom margin
   render_wild_boxes(cursor)
 end
 
