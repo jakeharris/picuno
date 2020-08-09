@@ -164,14 +164,11 @@ function handle_input()
     if can_play(selected_card, discard[#discard]) then
       played_card = del(hand, selected_card)
       add(discard, played_card)
-      -- if we played the rightmost card and we have more cards 
-      -- than we are displaying, scroll left one
-      -- if we played the rightmost card and we can't scroll left,
-      -- move the cursor left one
-      if leftmost > 1 and cursor == 7 and leftmost == (#hand + 1) - 6 then
-        leftmost -= 1 
-      elseif cursor == #hand + 1 then
+
+      if leftmost + cursor - 1 == #hand + 1 and cursor > 1 then
         cursor -= 1
+      elseif leftmost == #hand + 1 then
+        leftmost -= 1
       end
 
       if played_card.color == 4 then
@@ -186,7 +183,7 @@ function handle_input()
   if btnp(1) then -- right
     if cursor == 7 then
       if leftmost < #hand - 6 then leftmost += 1 end
-    elseif cursor < #hand then
+    elseif leftmost + cursor - 1 < #hand then
       cursor += 1
     end
   end
