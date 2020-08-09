@@ -106,6 +106,8 @@ function _draw()
   render_scroll_arrows(leftmost, hand)
   render_discard(discard)
 
+  render_wild_boxes()
+
   render_debug(debug_string)
 end
 
@@ -154,6 +156,19 @@ end
 
 function render_discard(discard)
   render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
+end
+
+function render_wild_boxes()
+  local x = 64 + (CARD_CONSTS.width / 2) + 2  -- to the right of the discard
+  local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
+  local w = 3
+  local h = 3
+  local bm = 2
+
+  for i = 0, 3 do
+    local box_y = y + (i * (h + bm))
+    rectfill(x, box_y, x + w, box_y + h, COLORS[i])
+  end
 end
 
 function generate_deck()
