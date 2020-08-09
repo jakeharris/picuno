@@ -255,7 +255,27 @@ function shuffle(deck) -- fisher-yates, copied from https://gist.github.com/Urad
 end
 
 function draw(deck)
-  return del(deck, deck[1])
+  if #deck == 0 then
+    top = del(discard, discard[#discard])
+
+    while #discard > 0 do
+      current = del(discard, discard[#discard])
+      if current.rank == 13 or current.rank == 14 then
+        current.color = 4 -- reset wilds to wild (unselected) color
+      end
+      add(deck, current)
+    end
+
+    add(discard, top)
+    deck = shuffle(deck)
+  end
+
+  -- @todo: do something smart here
+  if #deck > 0 then
+    return del(deck, deck[1])
+  else
+    return nil
+  end
 end
 
 function print_deck(deck)
