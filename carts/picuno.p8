@@ -25,6 +25,7 @@ SPECIAL_RANKS = {
 }
 
 deck = {}
+players = {}
 hands = {}
 discard = {}
 current_player = 1
@@ -44,6 +45,10 @@ function _init()
   deck = generate_deck()
   deck = shuffle(deck)
   
+  players = {}
+  players[1] = nil
+  players[2] = joey
+
   hands = {}
   for i = 1, 2 do
     add(hands, draw_first_hand(deck))
@@ -363,6 +368,31 @@ function kaiba(player)
   card = del(hands[player], hands[player][1])
   resolve_card(card)
   add(discard, card)
+end
+
+function joey(player)
+  for card in all(shuffle(hands[player])) do
+    if can_play(card, discard[#discard]) then
+      card = del(hands[player], card)
+      if card.color == 4 then -- if wild
+        card.color = flr(rnd(4))
+      end
+      resolve_card(card)
+      add(discard, card)
+      return
+    end
+  end
+
+  -- if we couldn't play anything...
+  local card = add(hands[player], draw(deck))
+  if can_play(card, discard[#discard]) then
+    card = del(hands[player], card)
+    resolve_card(card)
+    add(discard, card)
+    return
+  else
+    increment_player()
+  end
 end
 
 -- LIBRARY FUNCTIONS
