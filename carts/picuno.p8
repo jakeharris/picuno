@@ -70,6 +70,9 @@ function _update()
     end
   end
 
+  if current_player == 2 then
+    kaiba(2)
+  end
 end
 
 function _draw()
@@ -348,6 +351,15 @@ function increment_player()
   elseif current_player < 1 then 
     current_player = #hands
   end
+end
+
+
+-- AI LAND
+function kaiba(player)
+-- screw the rules, i've got money
+  card = del(hands[player], hands[player][1])
+  resolve_card(card)
+  add(discard, card)
 end
 
 -- LIBRARY FUNCTIONS
