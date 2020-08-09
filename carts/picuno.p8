@@ -238,11 +238,9 @@ function generate_deck()
     end
   end
 
-  wild = { color = 4, rank = 13}
-  wd4 =  { color = 4, rank = 14}
   for i = 0, 3 do 
-    add(deck, wild) 
-    add(deck, wd4)
+    add(deck, { color = 4, rank = 13}) 
+    add(deck, { color = 4, rank = 14})
   end
 
   return deck
