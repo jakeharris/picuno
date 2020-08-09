@@ -81,6 +81,8 @@ function _update()
       wait = 0
     else wait += 1 end
   end
+  debug_string = 'player: '..current_player..'\n'
+  debug_string ..= 'joey: '..#hands[2]..'\n'
 end
 
 function _draw()
