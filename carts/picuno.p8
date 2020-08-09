@@ -61,49 +61,10 @@ function _init()
 end
 
 function _update()
-  if btnp(3) then -- down (not something we actually expect to use; debugging only)
-    add(hand, draw(deck))
-    hand = sort(hand, compare_cards)
-  end
-
-  if btnp(4) then -- z/action/square button
-    selected_card = hand[leftmost + cursor - 1]
-    if can_play(selected_card, discard[#discard]) then
-      played_card = del(hand, selected_card)
-      add(discard, played_card)
-      -- if we played the rightmost card and we have more cards 
-      -- than we are displaying, scroll left one
-      -- if we played the rightmost card and we can't scroll left,
-      -- move the cursor left one
-      if leftmost > 1 and cursor == 7 and leftmost == (#hand + 1) - 6 then
-        leftmost -= 1 
-      elseif cursor == #hand + 1 then
-        cursor -= 1
-      end
-
-      if played_card.color == 4 then
-        is_wild_selection_mode = true
-      end
-    else
-      -- play an ernnt sound
-      sfx(0)
-    end
-  end
-
-  if btnp(1) then -- right
-    if cursor == 7 then
-      if leftmost < #hand - 6 then leftmost += 1 end
-    elseif cursor < #hand then
-      cursor += 1
-    end
-  end
-
-  if btnp(0) then -- left
-    if cursor == 1 then
-      if leftmost > 1 then leftmost -= 1 end
-    else
-      cursor -= 1
-    end
+  if is_wild_selection_mode then
+    handle_wild_selection_mode_input()
+  else
+    handle_input()
   end
 end
 
@@ -190,6 +151,76 @@ function render_wild_selection(cursor)
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   spr(3, x + 1, y + ((cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
   render_wild_boxes(cursor)
+end
+
+function handle_input()
+  if btnp(3) then -- down (not something we actually expect to use; debugging only)
+    add(hand, draw(deck))
+    hand = sort(hand, compare_cards)
+  end
+
+  if btnp(4) then -- z/action/square button
+    selected_card = hand[leftmost + cursor - 1]
+    if can_play(selected_card, discard[#discard]) then
+      played_card = del(hand, selected_card)
+      add(discard, played_card)
+      -- if we played the rightmost card and we have more cards 
+      -- than we are displaying, scroll left one
+      -- if we played the rightmost card and we can't scroll left,
+      -- move the cursor left one
+      if leftmost > 1 and cursor == 7 and leftmost == (#hand + 1) - 6 then
+        leftmost -= 1 
+      elseif cursor == #hand + 1 then
+        cursor -= 1
+      end
+
+      if played_card.color == 4 then
+        is_wild_selection_mode = true
+      end
+    else
+      -- play an ernnt sound
+      sfx(0)
+    end
+  end
+
+  if btnp(1) then -- right
+    if cursor == 7 then
+      if leftmost < #hand - 6 then leftmost += 1 end
+    elseif cursor < #hand then
+      cursor += 1
+    end
+  end
+
+  if btnp(0) then -- left
+    if cursor == 1 then
+      if leftmost > 1 then leftmost -= 1 end
+    else
+      cursor -= 1
+    end
+  end
+end
+
+function handle_wild_selection_mode_input()
+  if btnp(3) then -- down
+    if wild_cursor == 4 then 
+      wild_cursor = 1 
+    else 
+      wild_cursor += 1 
+    end
+  end
+
+  if btnp(2) then -- up
+    if wild_cursor == 1 then
+      wild_cursor = 4
+    else
+      wild_cursor -= 1
+    end
+  end
+
+  if btnp(4) then -- z/action/square button
+    discard[#discard].color = wild_cursor - 1
+    is_wild_selection_mode = false
+  end
 end
 
 function generate_deck()
