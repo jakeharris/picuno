@@ -26,6 +26,7 @@ SPECIAL_RANKS = {
 
 deck = {}
 players = {}
+player_names = {} -- @todo: refactor into players
 hands = {}
 discard = {}
 current_player = 1
@@ -45,12 +46,16 @@ function _init()
   deck = generate_deck()
   deck = shuffle(deck)
   
-  players = {}
-  players[1] = nil
-  players[2] = joey
+  players = {nil, joey, joey, joey}
+  player_names = {
+    'you',
+    'jOEY wHEELER',
+    'jOEY wHEELER, aGAIN',
+    'jOEY wHEELER, iii'
+  }
 
   hands = {}
-  for i = 1, 2 do
+  for i = 1, 3 do
     add(hands, draw_first_hand(deck))
   end 
   
@@ -81,16 +86,14 @@ function _update()
       wait = 0
     else wait += 1 end
   end
-  debug_string = 'player: '..current_player..'\n'
-  debug_string ..= 'joey: '..#hands[2]..'\n'
 end
 
 function _draw()
   cls()
-  print_deck(deck)
   render_hand(hands[1], cursor, leftmost)
   render_scroll_arrows(leftmost, hands[1])
   render_discard(discard)
+  render_ai(players)
 
   if is_wild_selection_mode then
     render_wild_selection(wild_cursor)
@@ -168,6 +171,32 @@ function render_wild_selection(cursor)
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   spr(3, x + 1, y + ((cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
   render_wild_boxes(cursor)
+end
+
+function render_ai(players)
+  if #hands == 2 then
+    print(player_names[2], (128 - #player_names[2] * 4) / 2, 2, 4)
+    print(#hands[2], (128 - 1 * 4) / 2, 8, 4)
+  end
+
+  if #hands == 3 then
+    print(player_names[2], 0, 32, 4)
+    print(#hands[2], #player_names[2] * 4 / 2, 32 + 6, 4)
+
+    print(player_names[3], (128 - #player_names[3] * 4 - 2), 32, 4)
+    print(#hands[3], 128 - (#player_names[3] * 4 / 2) - 2, 32 + 6, 4)
+  end
+
+  if #hands == 4 then
+    print(player_names[2], 0, 32, 4)
+    print(#hands[2], #player_names[2] * 4 / 2, 32 + 6, 4)
+
+    print(player_names[3], (128 - #player_names[3] * 4) / 2, 2, 4)
+    print(#hands[3], (128 - (2 * 4)) / 2, 8, 4)
+
+    print(player_names[4], (128 - #player_names[4] * 4 - 2), 32, 4)
+    print(#hands[4], 128 - (#player_names[4] * 4 / 2) - 2, 32 + 6, 4)
+  end
 end
 
 function handle_input()
