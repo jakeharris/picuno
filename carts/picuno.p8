@@ -27,8 +27,10 @@ SPECIAL_RANKS = {
 deck = {}
 hands = {}
 discard = {}
+current_player = 1
 cursor = 1
 leftmost = 1
+turn_order = 1
 is_wild_selection_mode = false
 wild_cursor = 1
 debug_string = ''
@@ -60,11 +62,14 @@ function _init()
 end
 
 function _update()
-  if is_wild_selection_mode then
-    handle_wild_selection_mode_input()
-  else
-    handle_input()
+  if current_player == 1 then
+    if is_wild_selection_mode then
+      handle_wild_selection_mode_input()
+    else
+      handle_input()
+    end
   end
+
 end
 
 function _draw()
@@ -172,6 +177,8 @@ function handle_input()
 
       if played_card.color == 4 then
         is_wild_selection_mode = true
+      else
+        resolve_card(played_card)
       end
     else
       -- play an ernnt sound
@@ -216,6 +223,7 @@ function handle_wild_selection_mode_input()
   if btnp(4) then -- z/action/square button
     discard[#discard].color = wild_cursor - 1
     is_wild_selection_mode = false
+    resolve_card(discard[#discard])
   end
 end
 
@@ -310,6 +318,36 @@ function draw_first_hand(deck)
   end
   hand = sort(hand, compare_cards)
   return hand
+end
+
+function resolve_card(last_card)
+  if last_card.rank == 10 then -- reverse
+    turn_order *= -1
+    if #hands == 2 then increment_player() end
+  elseif last_card.rank == 11 then -- skip
+    increment_player()
+  elseif last_card.rank == 12 then -- draw two
+    increment_player()
+    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw(deck))
+  elseif last_card.rank == 14 then -- wild draw four
+    increment_player()
+    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw(deck))
+  end
+  increment_player()
+end
+
+function increment_player()
+  current_player += turn_order
+
+  if current_player > #hands then 
+    current_player = 1
+  elseif current_player < 1 then 
+    current_player = #hands
+  end
 end
 
 -- LIBRARY FUNCTIONS
