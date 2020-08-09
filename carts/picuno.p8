@@ -77,7 +77,7 @@ function _update()
     end
   else 
     if wait >= 30 then
-      kaiba(current_player)
+      players[current_player](current_player)
       wait = 0
     else wait += 1 end
   end
