@@ -35,6 +35,8 @@ is_wild_selection_mode = false
 wild_cursor = 1
 debug_string = ''
 
+wait = 0
+
 function _init()
   cls()
 
@@ -68,10 +70,11 @@ function _update()
     else
       handle_input()
     end
-  end
-
-  if current_player == 2 then
-    kaiba(2)
+  else 
+    if wait >= 30 then
+      kaiba(current_player)
+      wait = 0
+    else wait += 1 end
   end
 end
 
