@@ -25,7 +25,7 @@ SPECIAL_RANKS = {
 }
 
 deck = {}
-hand = {}
+hands = {}
 discard = {}
 cursor = 1
 leftmost = 1
@@ -40,11 +40,10 @@ function _init()
   deck = generate_deck()
   deck = shuffle(deck)
   
-  hand = {}
-  for i = 1, 7 do
-    add(hand, draw(deck))
-  end
-  hand = sort(hand, compare_cards)
+  hands = {}
+  for i = 1, 2 do
+    add(hands, draw_first_hand(deck))
+  end 
 
   cursor = 1
   leftmost = 1
@@ -52,7 +51,7 @@ function _init()
   wild_cursor = 1
 
   print_deck(deck)
-  render_hand(hand, cursor, leftmost)
+  render_hand(hands[1], cursor, leftmost)
 
   discard = {}
   add(discard, draw(deck))
@@ -71,14 +70,14 @@ end
 function _draw()
   cls()
   print_deck(deck)
-  render_hand(hand, cursor, leftmost)
-  render_scroll_arrows(leftmost, hand)
+  render_hand(hands[1], cursor, leftmost)
+  render_scroll_arrows(leftmost, hands[1])
   render_discard(discard)
 
   if is_wild_selection_mode then
     render_wild_selection(wild_cursor)
   else 
-    render_cursor(cursor, hand)
+    render_cursor(cursor, hands[1])
   end
 
   render_debug(debug_string)
@@ -155,19 +154,19 @@ end
 
 function handle_input()
   if btnp(3) then -- down (not something we actually expect to use; debugging only)
-    add(hand, draw(deck))
-    hand = sort(hand, compare_cards)
+    add(hands[1], draw(deck))
+    hands[1] = sort(hands[1], compare_cards)
   end
 
   if btnp(4) then -- z/action/square button
-    selected_card = hand[leftmost + cursor - 1]
+    selected_card = hands[1][leftmost + cursor - 1]
     if can_play(selected_card, discard[#discard]) then
-      played_card = del(hand, selected_card)
+      played_card = del(hands[1], selected_card)
       add(discard, played_card)
 
-      if leftmost + cursor - 1 == #hand + 1 and cursor > 1 then
+      if leftmost + cursor - 1 == #hands[1] + 1 and cursor > 1 then
         cursor -= 1
-      elseif leftmost == #hand + 1 then
+      elseif leftmost == #hands[1] + 1 then
         leftmost -= 1
       end
 
@@ -182,8 +181,8 @@ function handle_input()
 
   if btnp(1) then -- right
     if cursor == 7 then
-      if leftmost < #hand - 6 then leftmost += 1 end
-    elseif leftmost + cursor - 1 < #hand then
+      if leftmost < #hands[1] - 6 then leftmost += 1 end
+    elseif leftmost + cursor - 1 < #hands[1] then
       cursor += 1
     end
   end
@@ -302,6 +301,15 @@ function can_play(selected, discard)
   end
 
   return false
+end
+
+function draw_first_hand(deck)
+  local hand = {}
+  for i = 1, 7 do
+    add(hand, draw(deck))
+  end
+  hand = sort(hand, compare_cards)
+  return hand
 end
 
 -- LIBRARY FUNCTIONS
