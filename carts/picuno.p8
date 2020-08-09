@@ -341,12 +341,14 @@ function resolve_card(last_card)
     increment_player()
     add(hands[current_player], draw(deck))
     add(hands[current_player], draw(deck))
+    sort(hands[current_player], compare_cards)
   elseif last_card.rank == 14 then -- wild draw four
     increment_player()
     add(hands[current_player], draw(deck))
     add(hands[current_player], draw(deck))
     add(hands[current_player], draw(deck))
     add(hands[current_player], draw(deck))
+    sort(hands[current_player], compare_cards)
   end
   increment_player()
 end
