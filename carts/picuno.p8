@@ -33,6 +33,7 @@ current_player = 1
 cursor = 1
 leftmost = 1
 turn_order = 1
+is_on_deck = false
 is_wild_selection_mode = false
 wild_cursor = 1
 debug_string = ''
@@ -61,6 +62,7 @@ function _init()
   
   cursor = 1
   leftmost = 1
+  is_on_deck = false
   is_wild_selection_mode = false
   wild_cursor = 1
 
@@ -77,6 +79,8 @@ function _update()
   if current_player == 1 then
     if is_wild_selection_mode then
       handle_wild_selection_mode_input()
+    elseif is_on_deck then
+      handle_deck_input()
     else
       handle_input()
     end
@@ -90,13 +94,15 @@ end
 
 function _draw()
   cls()
-  render_hand(hands[1], cursor, leftmost)
+  render_hand(hands[1], cursor, leftmost, is_on_deck)
   render_scroll_arrows(leftmost, hands[1])
   render_discard(discard)
   render_ai(players)
 
   if is_wild_selection_mode then
     render_wild_selection(wild_cursor)
+  elseif is_on_deck then
+    render_deck_cursor()
   else 
     render_cursor(cursor, hands[1])
   end
@@ -118,12 +124,12 @@ function render_card(card, x, y)
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
 end
 
-function render_hand(hand, cursor, leftmost)
+function render_hand(hand, cursor, leftmost, is_on_deck)
   local visible_cards = subseq(hand, leftmost, leftmost + 6)
   for index, card in pairs(visible_cards) do 
     local x = (index - 1) * (CARD_CONSTS.width + 2)
     local y = 96 + 4 -- a little more than 3/4s down the screen 
-    if index == cursor then
+    if index == cursor and not is_on_deck then
       y -= 1
     end
     render_card(card, x, y)
@@ -199,6 +205,10 @@ function render_ai(players)
   end
 end
 
+function render_deck_cursor()
+
+end
+
 function handle_input()
   if btnp(3) then -- down (not something we actually expect to use; debugging only)
     add(hands[1], draw(deck))
@@ -242,6 +252,23 @@ function handle_input()
     else
       cursor -= 1
     end
+  end
+
+  if btnp(2) then -- up
+    is_on_deck = true
+  end
+end
+
+function handle_deck_input()
+  if btnp(3) then -- down
+    is_on_deck = false
+  end
+
+  if btnp(4) then -- z/action/square button
+    add(hands[1], draw(deck))
+    sort(hands[1], compare_cards)
+    increment_player()
+    is_on_deck = false
   end
 end
 
