@@ -2,6 +2,18 @@ pico-8 cartridge // http://www.pico-8.com
 version 29
 __lua__
 
+-- TODO:
+-- 6. UNO mechanic 
+-- 1. game over
+-- 2. player should be able to play card they draw
+-- 3. more AIs
+-- 4. splash screen (& start menu?)
+-- 8. animations (drawing and playing)
+-- 5. scoring + rounds
+
+-- bugs:
+-- We saw a white wild played by an NPC...is this a thing? Unsure whether we were in a bad state
+
 
 CARD_CONSTS = {}
 CARD_CONSTS.width = 16
