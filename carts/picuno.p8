@@ -24,6 +24,11 @@ SPECIAL_RANKS = {
   [14] = 'F'
 }
 
+DISCARD_COORDS = {
+  left = 64 - CARD_CONSTS.width - 2,
+  top = 64 - CARD_CONSTS.height / 2
+}
+
 deck = {}
 players = {}
 discard = {}
@@ -92,6 +97,7 @@ function _draw()
   render_hand()
   render_scroll_arrows()
   render_discard()
+  render_deck()
   render_ai()
 
   if is_wild_selection_mode then
@@ -149,7 +155,11 @@ function render_scroll_arrows()
 end
 
 function render_discard()
-  render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
+  render_card(
+    discard[#discard], 
+    DISCARD_COORDS.left, 
+    DISCARD_COORDS.top
+  )
 end
 
 function render_debug()
@@ -161,24 +171,24 @@ function render_debug()
 end
 
 function render_wild_boxes()
-  local x = 64 + (CARD_CONSTS.width / 2) + 2  -- to the right of the discard
-  local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   local w = 3
   local h = 3
+  local x = DISCARD_COORDS.left - 2 - w  -- to the left of the discard
+  local y = DISCARD_COORDS.top -- starting at the top of the card
   local bm = 2
 
   for i = 1, 4 do
     local box_x = x
-    if i == wild_cursor then box_x += 1 end
+    if i == wild_cursor then box_x -= 1 end
     local box_y = y + ((i - 1) * (h + bm))
     rectfill(box_x, box_y, box_x + w, box_y + h, COLORS[i - 1])
   end
 end
 
 function render_wild_selection()
-  local x = 64 + (CARD_CONSTS.width / 2) + 2 + (3 + 2)  -- to the right of the discard, and the wild boxes
-  local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
-  spr(3, x + 1, y + ((wild_cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
+  local x = DISCARD_COORDS.left - 2 - 3 - 2 - 1 - 7  -- to the left of the discard, and the wild boxes
+  local y = DISCARD_COORDS.top -- starting at the top of the card
+  spr(3, x, y + ((wild_cursor - 1) * (3 + 2)) + 1, 1, 1, true) -- 3 + 2 from wild box height and bottom margin
   render_wild_boxes()
 end
 
@@ -209,7 +219,19 @@ function render_ai()
 end
 
 function render_deck_cursor()
+  local x = DISCARD_COORDS.left + CARD_CONSTS.width / 2 + CARD_CONSTS.width
+  local y = DISCARD_COORDS.top - 2 - 5
+  spr(2, x, y)
+end
 
+function render_deck()
+  if #deck == 0 then return end
+
+  local x = DISCARD_COORDS.left + 3 + CARD_CONSTS.width -- to the right of the discard
+  local y = DISCARD_COORDS.top
+  local coords = get_center_text_positions(tostr(#deck), x, y)
+  rect(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, 7) -- white
+  print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
 end
 
 function handle_input()
@@ -496,6 +518,12 @@ function sort(seq, comparator) -- bubble sort
   until done
 
   return seq
+end
+
+function get_center_text_positions(text, x, y)
+  local text_width = 3
+  local text_height = 5
+  return { x = x - (#text * text_width / 2), y = y - (text_height / 2) }
 end
 
 
