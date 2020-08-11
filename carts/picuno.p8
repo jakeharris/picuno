@@ -26,8 +26,6 @@ SPECIAL_RANKS = {
 
 deck = {}
 players = {}
-player_names = {} -- @todo: refactor into players
-hands = {}
 discard = {}
 current_player = 1
 cursor = 1
@@ -47,17 +45,14 @@ function _init()
   deck = generate_deck()
   deck = shuffle(deck)
   
-  players = {nil, joey, joey, joey}
-  player_names = {
-    'you',
-    'jOEY wHEELER',
-    'jOEY wHEELER, aGAIN',
-    'jOEY wHEELER, iii'
+  players = {
+    { name = 'you', hand = {}, ai = nil},
+    { name = 'jOEY wHEELER', hand = {}, ai = joey},
+    { name = 'jOEY wHEELER, aGAIN', hand = {}, ai = joey}
   }
 
-  hands = {}
-  for i = 1, 3 do
-    add(hands, draw_first_hand())
+  for i = 1, #players do
+    players[i].hand = draw_first_hand()
   end 
   
   cursor = 1
@@ -86,7 +81,7 @@ function _update()
     end
   else 
     if wait >= 30 then
-      players[current_player](current_player)
+      players[current_player]['ai'](current_player)
       wait = 0
     else wait += 1 end
   end
@@ -125,7 +120,7 @@ function render_card(card, x, y)
 end
 
 function render_hand()
-  local visible_cards = subseq(hands[1], leftmost, leftmost + 6)
+  local visible_cards = subseq(players[1].hand, leftmost, leftmost + 6)
   for index, card in pairs(visible_cards) do 
     local x = (index - 1) * (CARD_CONSTS.width + 2)
     local y = 96 + 4 -- a little more than 3/4s down the screen 
@@ -148,13 +143,21 @@ function render_scroll_arrows()
     spr(1, -3, 96 - 5, 1, 1, true) -- left arrow
   end
 
-  if leftmost < #hands[1] - 6 then
+  if leftmost < #players[1].hand - 6 then
     spr(1, 128 - 8, 96 - 5, 1, 1, false) -- right arrow
   end
 end
 
 function render_discard()
   render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
+end
+
+function render_debug()
+  debug_string =
+    'normal mode: ' .. tostring(not is_wild_selection_mode and not is_on_deck) .. '\n' .. 
+    'wild mode: ' .. tostring(is_wild_selection_mode) .. '\n'..
+    'is_on_deck: ' .. tostring(is_on_deck)
+  print(debug_string, 128 - 64, 4, 14)
 end
 
 function render_wild_boxes()
@@ -166,7 +169,7 @@ function render_wild_boxes()
 
   for i = 1, 4 do
     local box_x = x
-    if i == cursor then box_x += 1 end
+    if i == wild_cursor then box_x += 1 end
     local box_y = y + ((i - 1) * (h + bm))
     rectfill(box_x, box_y, box_x + w, box_y + h, COLORS[i - 1])
   end
@@ -175,33 +178,33 @@ end
 function render_wild_selection()
   local x = 64 + (CARD_CONSTS.width / 2) + 2 + (3 + 2)  -- to the right of the discard, and the wild boxes
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
-  spr(3, x + 1, y + ((cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
+  spr(3, x + 1, y + ((wild_cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
   render_wild_boxes()
 end
 
 function render_ai()
-  if #hands == 2 then
-    print(player_names[2], (128 - #player_names[2] * 4) / 2, 2, 4)
-    print(#hands[2], (128 - 1 * 4) / 2, 8, 4)
+  if #players == 2 then
+    print(players[2].name, (128 - #players[2].name * 4) / 2, 2, 4)
+    print(#players[2].hand, (128 - 1 * 4) / 2, 8, 4)
   end
 
-  if #hands == 3 then
-    print(player_names[2], 0, 32, 4)
-    print(#hands[2], #player_names[2] * 4 / 2, 32 + 6, 4)
+  if #players == 3 then
+    print(players[2].name, 0, 32, 4)
+    print(#players[2].hand, #players[2].name * 4 / 2, 32 + 6, 4)
 
-    print(player_names[3], (128 - #player_names[3] * 4 - 2), 32, 4)
-    print(#hands[3], 128 - (#player_names[3] * 4 / 2) - 2, 32 + 6, 4)
+    print(players[3].name, (128 - #players[3].name * 4 - 2), 32, 4)
+    print(#players[3].hand, 128 - (#players[3].name * 4 / 2) - 2, 32 + 6, 4)
   end
 
-  if #hands == 4 then
-    print(player_names[2], 0, 32, 4)
-    print(#hands[2], #player_names[2] * 4 / 2, 32 + 6, 4)
+  if #players == 4 then
+    print(players[2].name, 0, 32, 4)
+    print(#players[2].hand, #players[2].name * 4 / 2, 32 + 6, 4)
 
-    print(player_names[3], (128 - #player_names[3] * 4) / 2, 2, 4)
-    print(#hands[3], (128 - (2 * 4)) / 2, 8, 4)
+    print(players[3].name, (128 - #players[3].name * 4) / 2, 2, 4)
+    print(#players[3].hand, (128 - (2 * 4)) / 2, 8, 4)
 
-    print(player_names[4], (128 - #player_names[4] * 4 - 2), 32, 4)
-    print(#hands[4], 128 - (#player_names[4] * 4 / 2) - 2, 32 + 6, 4)
+    print(players[4].name, (128 - #players[4].name * 4 - 2), 32, 4)
+    print(#players[4].hand, 128 - (#players[4].name * 4 / 2) - 2, 32 + 6, 4)
   end
 end
 
@@ -211,19 +214,19 @@ end
 
 function handle_input()
   if btnp(3) then -- down (not something we actually expect to use; debugging only)
-    add(hands[1], draw())
-    hands[1] = sort(hands[1], compare_cards)
+    add(players[1].hand, draw())
+    players[1].hand = sort(players[1].hand, compare_cards)
   end
 
   if btnp(4) then -- z/action/square button
-    selected_card = hands[1][leftmost + cursor - 1]
+    selected_card = players[1].hand[leftmost + cursor - 1]
     if can_play(selected_card) then
-      played_card = del(hands[1], selected_card)
+      played_card = del(players[1].hand, selected_card)
       add(discard, played_card)
 
-      if leftmost + cursor - 1 == #hands[1] + 1 and cursor > 1 then
+      if leftmost + cursor - 1 == #players[1].hand + 1 and cursor > 1 then
         cursor -= 1
-      elseif leftmost == #hands[1] + 1 then
+      elseif leftmost == #players[1].hand + 1 then
         leftmost -= 1
       end
 
@@ -240,8 +243,8 @@ function handle_input()
 
   if btnp(1) then -- right
     if cursor == 7 then
-      if leftmost < #hands[1] - 6 then leftmost += 1 end
-    elseif leftmost + cursor - 1 < #hands[1] then
+      if leftmost < #players[1].hand - 6 then leftmost += 1 end
+    elseif leftmost + cursor - 1 < #players[1].hand then
       cursor += 1
     end
   end
@@ -265,8 +268,8 @@ function handle_deck_input()
   end
 
   if btnp(4) then -- z/action/square button
-    add(hands[1], draw())
-    sort(hands[1], compare_cards)
+    add(players[1].hand, draw())
+    sort(players[1].hand, compare_cards)
     increment_player()
     is_on_deck = false
   end
@@ -395,21 +398,21 @@ end
 function resolve_card(last_card)
   if last_card.rank == 10 then -- reverse
     turn_order *= -1
-    if #hands == 2 then increment_player() end
+    if #players == 2 then increment_player() end
   elseif last_card.rank == 11 then -- skip
     increment_player()
   elseif last_card.rank == 12 then -- draw two
     increment_player()
-    add(hands[current_player], draw())
-    add(hands[current_player], draw())
-    sort(hands[current_player], compare_cards)
+    add(players[current_player].hand, draw())
+    add(players[current_player].hand, draw())
+    sort(players[current_player].hand, compare_cards)
   elseif last_card.rank == 14 then -- wild draw four
     increment_player()
-    add(hands[current_player], draw())
-    add(hands[current_player], draw())
-    add(hands[current_player], draw())
-    add(hands[current_player], draw())
-    sort(hands[current_player], compare_cards)
+    add(players[current_player].hand, draw())
+    add(players[current_player].hand, draw())
+    add(players[current_player].hand, draw())
+    add(players[current_player].hand, draw())
+    sort(players[current_player].hand, compare_cards)
   end
   increment_player()
   sfx(1)
@@ -418,10 +421,10 @@ end
 function increment_player()
   current_player += turn_order
 
-  if current_player > #hands then 
+  if current_player > #players then 
     current_player = 1
   elseif current_player < 1 then 
-    current_player = #hands
+    current_player = #players
   end
 end
 
@@ -429,15 +432,15 @@ end
 -- AI LAND
 function kaiba(player)
 -- screw the rules, i've got money
-  card = del(hands[player], hands[player][1])
+  card = del(players[player].hand, players[player].hand[1])
   resolve_card(card)
   add(discard, card)
 end
 
 function joey(player)
-  for card in all(shuffle(hands[player])) do
+  for card in all(shuffle(players[player].hand)) do
     if can_play(card) then
-      card = del(hands[player], card)
+      card = del(players[player].hand, card)
       if card.color == 4 then -- if wild
         card.color = flr(rnd(4))
       end
@@ -448,9 +451,9 @@ function joey(player)
   end
 
   -- if we couldn't play anything...
-  local card = add(hands[player], draw())
+  local card = add(players[player].hand, draw())
   if can_play(card) then
-    card = del(hands[player], card)
+    card = del(players[player].hand, card)
     resolve_card(card)
     add(discard, card)
     return
@@ -495,9 +498,6 @@ function sort(seq, comparator) -- bubble sort
   return seq
 end
 
-function render_debug(string)
-  print(string, 128 - 64, 4, 14)
-end
 
 __gfx__
 00000000070000000000000077770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
