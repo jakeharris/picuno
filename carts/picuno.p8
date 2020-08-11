@@ -57,7 +57,7 @@ function _init()
 
   hands = {}
   for i = 1, 3 do
-    add(hands, draw_first_hand(deck))
+    add(hands, draw_first_hand())
   end 
   
   cursor = 1
@@ -66,12 +66,12 @@ function _init()
   is_wild_selection_mode = false
   wild_cursor = 1
 
-  print_deck(deck)
-  render_hand(hands[1], cursor, leftmost)
+  print_deck()
+  render_hand()
 
   discard = {}
   add(discard, draw(deck))
-  render_discard(discard)
+  render_discard()
   
 end
 
@@ -94,20 +94,20 @@ end
 
 function _draw()
   cls()
-  render_hand(hands[1], cursor, leftmost, is_on_deck)
-  render_scroll_arrows(leftmost, hands[1])
-  render_discard(discard)
-  render_ai(players)
+  render_hand()
+  render_scroll_arrows()
+  render_discard()
+  render_ai()
 
   if is_wild_selection_mode then
-    render_wild_selection(wild_cursor)
+    render_wild_selection()
   elseif is_on_deck then
     render_deck_cursor()
   else 
-    render_cursor(cursor, hands[1])
+    render_cursor()
   end
 
-  render_debug(debug_string)
+  render_debug()
 end
 
 function get_display_rank(rank)
@@ -124,8 +124,8 @@ function render_card(card, x, y)
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
 end
 
-function render_hand(hand, cursor, leftmost, is_on_deck)
-  local visible_cards = subseq(hand, leftmost, leftmost + 6)
+function render_hand()
+  local visible_cards = subseq(hands[1], leftmost, leftmost + 6)
   for index, card in pairs(visible_cards) do 
     local x = (index - 1) * (CARD_CONSTS.width + 2)
     local y = 96 + 4 -- a little more than 3/4s down the screen 
@@ -136,28 +136,28 @@ function render_hand(hand, cursor, leftmost, is_on_deck)
   end
 end
 
-function render_cursor(cursor, hand)
+function render_cursor()
   local card_width = CARD_CONSTS.width + 2 -- 1-pixel border on each side. should this be in the constant?
   local x = ((cursor - 1) * card_width + (card_width / 2)) - 4
   local y = 96 - 4
   spr(2, x, y)
 end
 
-function render_scroll_arrows(leftmost, hand)
+function render_scroll_arrows()
   if leftmost > 1 then
     spr(1, -3, 96 - 5, 1, 1, true) -- left arrow
   end
 
-  if leftmost < #hand - 6 then
+  if leftmost < #hands[1] - 6 then
     spr(1, 128 - 8, 96 - 5, 1, 1, false) -- right arrow
   end
 end
 
-function render_discard(discard)
+function render_discard()
   render_card(discard[#discard], 64 - (CARD_CONSTS.width / 2), 96 - 2 - (CARD_CONSTS.height))
 end
 
-function render_wild_boxes(cursor)
+function render_wild_boxes()
   local x = 64 + (CARD_CONSTS.width / 2) + 2  -- to the right of the discard
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   local w = 3
@@ -172,14 +172,14 @@ function render_wild_boxes(cursor)
   end
 end
 
-function render_wild_selection(cursor)
+function render_wild_selection()
   local x = 64 + (CARD_CONSTS.width / 2) + 2 + (3 + 2)  -- to the right of the discard, and the wild boxes
   local y = 96 - 2 - (CARD_CONSTS.height) -- starting at the top of the card
   spr(3, x + 1, y + ((cursor - 1) * (3 + 2)) + 1) -- 3 + 2 from wild box height and bottom margin
-  render_wild_boxes(cursor)
+  render_wild_boxes()
 end
 
-function render_ai(players)
+function render_ai()
   if #hands == 2 then
     print(player_names[2], (128 - #player_names[2] * 4) / 2, 2, 4)
     print(#hands[2], (128 - 1 * 4) / 2, 8, 4)
@@ -211,13 +211,13 @@ end
 
 function handle_input()
   if btnp(3) then -- down (not something we actually expect to use; debugging only)
-    add(hands[1], draw(deck))
+    add(hands[1], draw())
     hands[1] = sort(hands[1], compare_cards)
   end
 
   if btnp(4) then -- z/action/square button
     selected_card = hands[1][leftmost + cursor - 1]
-    if can_play(selected_card, discard[#discard]) then
+    if can_play(selected_card) then
       played_card = del(hands[1], selected_card)
       add(discard, played_card)
 
@@ -265,7 +265,7 @@ function handle_deck_input()
   end
 
   if btnp(4) then -- z/action/square button
-    add(hands[1], draw(deck))
+    add(hands[1], draw())
     sort(hands[1], compare_cards)
     increment_player()
     is_on_deck = false
@@ -319,15 +319,15 @@ function generate_deck()
   return deck
 end
 
-function shuffle(deck) -- fisher-yates, copied from https://gist.github.com/Uradamus/10323382
-  for i = #deck, 2, -1 do
+function shuffle(cards) -- fisher-yates, copied from https://gist.github.com/Uradamus/10323382
+  for i = #cards, 2, -1 do
     local j = -flr(-rnd(i))
-    deck[i], deck[j] = deck[j], deck[i]
+    cards[i], cards[j] = cards[j], cards[i]
   end
-  return deck
+  return cards
 end
 
-function draw(deck)
+function draw()
   if #deck == 0 then
     top = del(discard, discard[#discard])
 
@@ -352,7 +352,7 @@ function draw(deck)
   end
 end
 
-function print_deck(deck)
+function print_deck()
   for index, card in pairs(deck) do
     print(get_display_rank(card.rank), flr((index - 1) / 10) * 10, ((index - 1) % 10) * 6, COLORS[card.color])
   end
@@ -365,26 +365,28 @@ function compare_cards(a, b)
   return av - bv
 end
 
-function can_play(selected, discard)
+function can_play(selected)
+  local top_of_discard = discard[#discard]
+
   if selected.color == 4 then -- wild
     return true
   end
 
-  if discard.color == 4 then -- if we haven't implemented wild color selection behavior yet...
+  if top_of_discard.color == 4 then -- if we haven't implemented wild color selection behavior yet...
     return true
   end
 
-  if selected.color == discard.color or selected.rank == discard.rank then
+  if selected.color == top_of_discard.color or selected.rank == top_of_discard.rank then
     return true
   end
 
   return false
 end
 
-function draw_first_hand(deck)
+function draw_first_hand()
   local hand = {}
   for i = 1, 7 do
-    add(hand, draw(deck))
+    add(hand, draw())
   end
   hand = sort(hand, compare_cards)
   return hand
@@ -398,15 +400,15 @@ function resolve_card(last_card)
     increment_player()
   elseif last_card.rank == 12 then -- draw two
     increment_player()
-    add(hands[current_player], draw(deck))
-    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw())
+    add(hands[current_player], draw())
     sort(hands[current_player], compare_cards)
   elseif last_card.rank == 14 then -- wild draw four
     increment_player()
-    add(hands[current_player], draw(deck))
-    add(hands[current_player], draw(deck))
-    add(hands[current_player], draw(deck))
-    add(hands[current_player], draw(deck))
+    add(hands[current_player], draw())
+    add(hands[current_player], draw())
+    add(hands[current_player], draw())
+    add(hands[current_player], draw())
     sort(hands[current_player], compare_cards)
   end
   increment_player()
@@ -434,7 +436,7 @@ end
 
 function joey(player)
   for card in all(shuffle(hands[player])) do
-    if can_play(card, discard[#discard]) then
+    if can_play(card) then
       card = del(hands[player], card)
       if card.color == 4 then -- if wild
         card.color = flr(rnd(4))
@@ -446,8 +448,8 @@ function joey(player)
   end
 
   -- if we couldn't play anything...
-  local card = add(hands[player], draw(deck))
-  if can_play(card, discard[#discard]) then
+  local card = add(hands[player], draw())
+  if can_play(card) then
     card = del(hands[player], card)
     resolve_card(card)
     add(discard, card)
