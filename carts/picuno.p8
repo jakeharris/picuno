@@ -47,8 +47,8 @@ function _init()
   
   players = {
     { name = 'you', hand = {}, ai = nil},
-    { name = 'jOEY wHEELER', hand = {}, ai = joey},
-    { name = 'jOEY wHEELER, aGAIN', hand = {}, ai = joey}
+    { name = 'jOEY', hand = {}, ai = joey},
+    { name = 'bOEY', hand = {}, ai = joey}
   }
 
   for i = 1, #players do
