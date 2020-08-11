@@ -8,13 +8,15 @@ CARD_CONSTS.width = 16
 CARD_CONSTS.height = 24
 
 -- colors: red 0, green 1, blue 2, yellow 3, wild 4
-COLORS = { 
+CARD_COLORS = { 
   [0] = 8, -- red
   [1] = 11, -- green
   [2] = 12, -- blue
   [3] = 10, -- yellow
   [4] = 7 -- white
 }
+
+INACTIVE_PLAYER_COLOR = 5
 
 SPECIAL_RANKS = {
   [10] = 'R',
@@ -51,9 +53,10 @@ function _init()
   deck = shuffle(deck)
   
   players = {
-    { name = 'you', hand = {}, ai = nil},
-    { name = 'jOEY', hand = {}, ai = joey},
-    { name = 'bOEY', hand = {}, ai = joey}
+    { name = 'you', hand = {}, ai = nil, color = nil},
+    { name = 'jOEY', hand = {}, ai = joey, color = 9},
+    { name = 'bOEY', hand = {}, ai = joey, color = 4},
+    { name = 'gOEY', hand = {}, ai = joey, color = 14}
   }
 
   for i = 1, #players do
@@ -104,11 +107,11 @@ function _draw()
     render_wild_selection()
   elseif is_on_deck then
     render_deck_cursor()
-  else 
+  elseif current_player == 1 then
     render_cursor()
   end
 
-  render_debug()
+  --render_debug()
 end
 
 function get_display_rank(rank)
@@ -119,8 +122,12 @@ function get_display_rank(rank)
   end
 end
 
-function render_card(card, x, y)
-  rectfill(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, COLORS[card.color])
+function render_card(card, x, y, is_active)
+  local color = 5 -- gray/inactive
+  if is_active == nil then is_active = true end
+  if is_active then color = CARD_COLORS[card.color] end
+  
+  rectfill(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, color)
   print(get_display_rank(card.rank), x + 1, y + 1, 0) -- black
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
 end
@@ -130,10 +137,10 @@ function render_hand()
   for index, card in pairs(visible_cards) do 
     local x = (index - 1) * (CARD_CONSTS.width + 2)
     local y = 96 + 4 -- a little more than 3/4s down the screen 
-    if index == cursor and not is_on_deck then
+    if index == cursor and not is_on_deck and current_player == 1 then
       y -= 1
     end
-    render_card(card, x, y)
+    render_card(card, x, y, current_player == 1)
   end
 end
 
@@ -181,7 +188,7 @@ function render_wild_boxes()
     local box_x = x
     if i == wild_cursor then box_x -= 1 end
     local box_y = y + ((i - 1) * (h + bm))
-    rectfill(box_x, box_y, box_x + w, box_y + h, COLORS[i - 1])
+    rectfill(box_x, box_y, box_x + w, box_y + h, CARD_COLORS[i - 1])
   end
 end
 
@@ -193,28 +200,58 @@ function render_wild_selection()
 end
 
 function render_ai()
+  local y_offset = 6
   if #players == 2 then
-    print(players[2].name, (128 - #players[2].name * 4) / 2, 2, 4)
-    print(#players[2].hand, (128 - 1 * 4) / 2, 8, 4)
+    local y = 2
+    local name_coords = get_center_text_positions(players[2].name, 64)
+    local card_count_coords = get_center_text_positions(tostr(#players[2].hand), 64)
+    local color = get_player_display_color(2)
+
+    print(players[2].name, name_coords.x, y, color)
+    print(#players[2].hand, card_count_coords.x, y + y_offset, color)
   end
 
   if #players == 3 then
-    print(players[2].name, 0, 32, 4)
-    print(#players[2].hand, #players[2].name * 4 / 2, 32 + 6, 4)
+    local y = 32
+    local name_center = -get_center_text_positions(players[2].name).x
+    local card_count_coords = get_center_text_positions(tostr(#players[2].hand), name_center)
+    local color = get_player_display_color(2)
 
-    print(players[3].name, (128 - #players[3].name * 4 - 2), 32, 4)
-    print(#players[3].hand, 128 - (#players[3].name * 4 / 2) - 2, 32 + 6, 4)
+    print(players[2].name, 0, y, color)
+    print(#players[2].hand, card_count_coords.x, y + y_offset, color)
+
+    name_center = get_center_text_positions(players[3].name, 128 - 4).x
+    card_count_coords = get_center_text_positions(tostr(#players[3].hand), name_center)
+    color = get_player_display_color(3)
+
+    print(players[3].name, (128 - #players[3].name * 4 - 2), y, color)
+    print(#players[3].hand, card_count_coords.x, y + y_offset, color)
   end
 
   if #players == 4 then
-    print(players[2].name, 0, 32, 4)
-    print(#players[2].hand, #players[2].name * 4 / 2, 32 + 6, 4)
+    local y = 32
+    local name_center = -get_center_text_positions(players[2].name).x
+    local card_count_coords = get_center_text_positions(tostr(#players[2].hand), name_center)
+    local color = get_player_display_color(2)
 
-    print(players[3].name, (128 - #players[3].name * 4) / 2, 2, 4)
-    print(#players[3].hand, (128 - (2 * 4)) / 2, 8, 4)
+    print(players[2].name, 0, y, color)
+    print(#players[2].hand, card_count_coords.x, y + y_offset, color)
 
-    print(players[4].name, (128 - #players[4].name * 4 - 2), 32, 4)
-    print(#players[4].hand, 128 - (#players[4].name * 4 / 2) - 2, 32 + 6, 4)
+    y = 2
+    local name_coords = get_center_text_positions(players[3].name, 64)
+    card_count_coords = get_center_text_positions(tostr(#players[3].hand), 64)
+    color = get_player_display_color(3)
+
+    print(players[3].name, name_coords.x, y, color)
+    print(#players[3].hand, card_count_coords.x, y + y_offset, color)
+
+    y = 32
+    name_center = get_center_text_positions(players[4].name, 128 - 4).x
+    card_count_coords = get_center_text_positions(tostr(#players[4].hand), name_center)
+    color = get_player_display_color(4)
+
+    print(players[4].name, (128 - #players[4].name * 4 - 2), y, color)
+    print(#players[4].hand, card_count_coords.x, y + y_offset, color)
   end
 end
 
@@ -379,7 +416,7 @@ end
 
 function print_deck()
   for index, card in pairs(deck) do
-    print(get_display_rank(card.rank), flr((index - 1) / 10) * 10, ((index - 1) % 10) * 6, COLORS[card.color])
+    print(get_display_rank(card.rank), flr((index - 1) / 10) * 10, ((index - 1) % 10) * 6, CARD_COLORS[card.color])
   end
 end
 
@@ -450,6 +487,13 @@ function increment_player()
   end
 end
 
+function get_player_display_color(player)
+  if current_player == player then 
+    return players[player].color 
+  else 
+    return INACTIVE_PLAYER_COLOR 
+  end
+end
 
 -- AI LAND
 function kaiba(player)
@@ -521,9 +565,11 @@ function sort(seq, comparator) -- bubble sort
 end
 
 function get_center_text_positions(text, x, y)
-  local text_width = 3
+  x = x or 0
+  y = y or 0
+  local text_width = 3 + 1
   local text_height = 5
-  return { x = x - (#text * text_width / 2), y = y - (text_height / 2) }
+  return { x = x - (#text * text_width / 2) + 1, y = y - (text_height / 2) }
 end
 
 
