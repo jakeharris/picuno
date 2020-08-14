@@ -12,7 +12,7 @@ __lua__
 -- 5. scoring + rounds
 
 -- bugs:
--- We saw a white wild played by an NPC...is this a thing? Unsure whether we were in a bad state
+-- FIXT: We saw a white wild played by an NPC...is this a thing? Unsure whether we were in a bad state.
 
 
 CARD_CONSTS = {}
@@ -580,6 +580,9 @@ function joey(player)
   local card = add(players[player].hand, draw())
   if can_play(card) then
     card = del(players[player].hand, card)
+    if card.color == 4 then -- if wild
+      card.color = flr(rnd(4))
+    end
     resolve_card(card)
     add(discard, card)
     return
