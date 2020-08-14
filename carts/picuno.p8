@@ -52,6 +52,8 @@ leftmost = 1
 turn_order = 1
 is_on_deck = false
 is_wild_selection_mode = false
+is_uno_called = false
+vulnerable_player = 0
 wild_cursor = 1
 debug_string = ''
 
@@ -80,6 +82,8 @@ function _init()
   is_on_deck = false
   is_wild_selection_mode = false
   wild_cursor = 1
+  is_uno_called = false
+  vulnerable_player = 0
 
   print_deck()
   render_hand()
@@ -103,7 +107,19 @@ function _update()
     if wait >= 30 then
       players[current_player]['ai'](current_player)
       wait = 0
-    else wait += 1 end
+    else 
+      -- if someone calls uno on 
+      if btnp(5) then
+        if vulnerable_player > 1 then
+          add(players[vulnerable_player].hand, draw(deck))
+          add(players[vulnerable_player].hand, draw(deck))
+          vulnerable_player = 0
+        else
+          vulnerable_player = 0
+        end
+      end
+      wait += 1 
+    end
   end
 end
 
@@ -123,6 +139,7 @@ function _draw()
     render_cursor()
   end
 
+  render_uno_state()
   --render_debug()
 end
 
@@ -283,6 +300,12 @@ function render_deck()
   print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
 end
 
+function render_uno_state()
+  if is_uno_called then
+    pset(127, 127, 7)
+  end
+end
+
 function handle_input()
   if btnp(3) then -- down (not something we actually expect to use; debugging only)
     add(players[1].hand, draw())
@@ -309,6 +332,16 @@ function handle_input()
     else
       -- play an ernnt sound
       sfx(0)
+    end
+  end
+
+  if btnp(5) then -- x/secondary/x button
+    if vulnerable_player > 1 then
+      add(players[vulnerable_player].hand, draw(deck))
+      add(players[vulnerable_player].hand, draw(deck))
+      vulnerable_player = 0
+    else
+      is_uno_called = true
     end
   end
 
@@ -467,6 +500,21 @@ function draw_first_hand()
 end
 
 function resolve_card(last_card)
+
+  -- handle uno status
+  vulnerable_player = 0
+  if #players[current_player].hand == 1 and is_uno_called then
+    sfx(4)
+  elseif #players[current_player].hand == 1 and not is_uno_called then
+    vulnerable_player = current_player
+    sfx(1)
+  else
+    sfx(1) -- hmmmmmm
+  end
+  is_uno_called = false
+
+  -- maybe a delay
+
   if last_card.rank == 10 then -- reverse
     turn_order *= -1
     if #players == 2 then increment_player() end
@@ -485,8 +533,8 @@ function resolve_card(last_card)
     add(players[current_player].hand, draw())
     sort(players[current_player].hand, compare_cards)
   end
+
   increment_player()
-  sfx(1)
 end
 
 function increment_player()
