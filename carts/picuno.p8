@@ -143,7 +143,7 @@ function _draw()
     render_cursor()
   end
 
-  render_uno_state()
+  render_uno_call()
   --render_debug()
 end
 
@@ -304,7 +304,7 @@ function render_deck()
   print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
 end
 
-function render_uno_state()
+function render_uno_call()
   if is_uno_called then
     pset(127, 127, 7)
   end
