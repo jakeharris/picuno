@@ -122,6 +122,7 @@ function _update()
         if vulnerable_player > 1 then
           add(players[vulnerable_player].hand, draw(deck))
           add(players[vulnerable_player].hand, draw(deck))
+          add_defensive_uno()
           vulnerable_player = 0
         else
           vulnerable_player = 0
@@ -310,7 +311,7 @@ function render_deck()
   print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
 end
 
-function add_uno_call_sprites(player)
+function add_defensive_uno(player)
   local x = 0
   local y = 0
   local flip_x = false
@@ -321,10 +322,18 @@ function add_uno_call_sprites(player)
     y = 96 - 8
   elseif #players == 2 then
     if player == 2 then
-
+      x = 64 + #players[player].name * 2 + 2
+      y = 2
     end
   elseif #players == 3 then
-
+    if player == 2 then
+      x = #players[player].name * 4 + 2
+      y = 32
+    elseif player == 3 then
+      x = 128 - #players[player].name * 4 - 16 - 4
+      y = 32
+      flip_x = true
+    end
   elseif #players == 4 then
     if player == 2 then
       x = #players[player].name * 4 + 2
@@ -385,7 +394,7 @@ function handle_input()
       vulnerable_player = 0
     else
       is_uno_called = true
-      add_uno_call_sprites(1)
+      add_defensive_uno(1)
     end
   end
 
@@ -637,7 +646,7 @@ function joey(player)
       if #players[player].hand == 1 then
         if flr(rnd(2)) == 1 then -- coin flip
           is_uno_called = true 
-          add_uno_call_sprites(player)
+          add_defensive_uno(player)
         end 
       end
       resolve_card(card)
@@ -656,7 +665,7 @@ function joey(player)
     if #players[player].hand == 1 then
       if flr(rnd(2)) == 1 then -- coin flip
         is_uno_called = true 
-        add_uno_call_sprites(player)
+        add_defensive_uno(player)
       end 
     end
     resolve_card(card)
