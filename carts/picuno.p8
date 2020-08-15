@@ -3,11 +3,6 @@ version 29
 __lua__
 
 -- TODO:
--- 6. UNO mechanic 
---   remaining:
---   a. ~make AI call uno for themselves~
---   b. make AI call uno against others
---   c. visuals + sound effect
 -- 1. game over
 -- 2. player should be able to play card they draw
 -- 3. more AIs
@@ -51,6 +46,7 @@ deck = {}
 players = {}
 discard = {}
 sprite_render_list = {}
+ai_call_timers = {}
 current_player = 1
 cursor = 1
 leftmost = 1
@@ -73,15 +69,16 @@ function _init()
   
   players = {
     { name = 'you', hand = {}, ai = nil, color = nil},
-    { name = 'jOEY', hand = {}, ai = joey, color = 9},
-    { name = 'bOEY', hand = {}, ai = joey, color = 4},
-    { name = 'gOEY', hand = {}, ai = joey, color = 14}
+    { name = 'jOEY', hand = {}, ai = joey, color = 9, max_reaction_time = 5},
+    { name = 'bOEY', hand = {}, ai = joey, color = 4, max_reaction_time = 1},
+    { name = 'gOEY', hand = {}, ai = joey, color = 14, max_reaction_time = 1}
   }
 
   for i = 1, #players do
     players[i].hand = draw_first_hand()
   end 
   
+  current_player = 1
   cursor = 1
   leftmost = 1
   is_on_deck = false
@@ -90,6 +87,7 @@ function _init()
   is_uno_called = false
   sprite_render_list = {}
   vulnerable_player = 0
+  ai_call_timers = {}
 
   print_deck()
   render_hand()
@@ -103,6 +101,7 @@ end
 function _update()
 
   clean_sprite_render_list()
+  handle_ai_call_timers()
 
   if current_player == 1 then
     if is_wild_selection_mode then
@@ -117,12 +116,11 @@ function _update()
       players[current_player]['ai'](current_player)
       wait = 0
     else 
-      -- if someone calls uno on 
       if btnp(5) then
         if vulnerable_player > 1 then
           add(players[vulnerable_player].hand, draw(deck))
           add(players[vulnerable_player].hand, draw(deck))
-          add_defensive_uno()
+          add_offensive_uno(1)
           vulnerable_player = 0
         else
           vulnerable_player = 0
@@ -151,7 +149,7 @@ function _draw()
 
   render_sprites()
 
-  --render_debug()
+  -- render_debug()
 end
 
 function get_display_rank(rank)
@@ -210,10 +208,6 @@ function render_discard()
 end
 
 function render_debug()
-  debug_string =
-    'normal mode: ' .. tostring(not is_wild_selection_mode and not is_on_deck) .. '\n' .. 
-    'wild mode: ' .. tostring(is_wild_selection_mode) .. '\n'..
-    'is_on_deck: ' .. tostring(is_on_deck)
   print(debug_string, 128 - 64, 4, 14)
 end
 
@@ -352,6 +346,43 @@ function add_defensive_uno(player)
   add_sprite_to_render_list(6, x, y, duration, 2, 1)
 end
 
+function add_offensive_uno(player)
+  local x = 0
+  local y = 0
+  local duration = 1
+
+  if player == 1 then
+    x = 64 - 3 * 8 / 2
+    y = 96 - 3 * 8
+  elseif #players == 2 then
+    if player == 2 then
+      x = 64 + #players[player].name * 2 + 2
+      y = 2
+    end
+  elseif #players == 3 then
+    if player == 2 then
+      x = #players[player].name * 4 + 2
+      y = 32
+    elseif player == 3 then
+      x = 128 - #players[player].name * 4 - 16 - 4
+      y = 32
+    end
+  elseif #players == 4 then
+    if player == 2 then
+      x = #players[player].name * 4 + 2
+      y = 32
+    elseif player == 3 then
+      x = 64 + #players[player].name * 2 + 2
+      y = 2
+    elseif player == 4 then
+      x = 128 - #players[player].name * 4 - 16 - 4
+      y = 32
+    end
+  end
+
+  add_sprite_to_render_list(16, x, y, duration, 3, 3)
+end
+
 function render_sprites()
   for sprite in all(sprite_render_list) do
     spr(sprite.n, sprite.x, sprite.y, sprite.w, sprite.h, sprite.flip_x, sprite.flip_y)
@@ -392,6 +423,7 @@ function handle_input()
       add(players[vulnerable_player].hand, draw(deck))
       add(players[vulnerable_player].hand, draw(deck))
       vulnerable_player = 0
+      clear_ai_call_timers()
     else
       is_uno_called = true
       add_defensive_uno(1)
@@ -545,7 +577,7 @@ end
 
 function draw_first_hand()
   local hand = {}
-  for i = 1, 7 do
+  for i = 1, 2 do
     add(hand, draw())
   end
   hand = sort(hand, compare_cards)
@@ -560,6 +592,7 @@ function resolve_card(last_card)
     sfx(3) -- uno sfx
   elseif #players[current_player].hand == 1 and not is_uno_called then
     vulnerable_player = current_player
+    start_ai_call_timers()
     sfx(1) -- play card sfx
   else
     sfx(1) -- hmmmmmm, this may be a problem later when it collides with the later sound effect
@@ -624,6 +657,39 @@ function clean_sprite_render_list()
   for sprite in all(sprite_render_list) do
     if sprite.timestamp + sprite.duration < time() then
       del(sprite_render_list, sprite)
+    end
+  end
+end
+
+function start_ai_call_timers()
+  for i,player in pairs(players) do
+    if i != 1 then -- if not human
+      local timer = { timestamp = time(), reaction_time = rnd(player.max_reaction_time), player = i}
+      add(ai_call_timers, timer)
+      for k,v in pairs(timer) do
+        printh(k..': '..tostr(v))
+      end
+    end
+  end
+end
+
+function clear_ai_call_timers()
+  ai_call_timers = {}
+end
+
+function handle_ai_call_timers()
+  for timer in all(ai_call_timers) do
+    if timer.timestamp + timer.reaction_time < time() then
+      if vulnerable_player == timer.player then
+        add_defensive_uno(timer.player)
+      else
+        add(players[vulnerable_player].hand, draw(deck))
+        add(players[vulnerable_player].hand, draw(deck))
+        add_offensive_uno(timer.player)
+      end
+
+      vulnerable_player = 0
+      clear_ai_call_timers()
     end
   end
 end
