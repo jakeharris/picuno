@@ -3,7 +3,6 @@ version 29
 __lua__
 
 -- TODO:
--- 1. game over
 -- 2. player should be able to play card they draw
 -- 3. more AIs
 -- 4. splash screen (& start menu?)
@@ -56,6 +55,7 @@ is_wild_selection_mode = false
 is_uno_called = false
 vulnerable_player = 0
 wild_cursor = 1
+is_game_over_mode = false
 debug_string = ''
 
 wait = 0
@@ -88,6 +88,7 @@ function _init()
   sprite_render_list = {}
   vulnerable_player = 0
   ai_call_timers = {}
+  is_game_over_mode = false
 
   print_deck()
   render_hand()
@@ -99,6 +100,11 @@ function _init()
 end
 
 function _update()
+
+  if is_game_over_mode then
+    handle_game_over_mode_input()
+    return
+  end
 
   clean_sprite_render_list()
   handle_ai_call_timers()
@@ -133,6 +139,12 @@ end
 
 function _draw()
   cls()
+
+  if is_game_over_mode then
+    render_game_over_screen()
+    return
+  end
+
   render_hand()
   render_scroll_arrows()
   render_discard()
@@ -303,6 +315,19 @@ function render_deck()
   local coords = get_center_text_positions(tostr(#deck), x, y)
   rect(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, 7) -- white
   print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
+end
+
+function render_game_over_screen()
+  local winner_text = ''
+
+  if current_player == 1 then
+    winner_text = 'yOU WIN!'
+  else
+    winner_text = players[current_player].name .. ' WINS!'
+  end
+
+  local coords = get_center_text_positions(winner_text, 64, 64)
+  print(winner_text, coords.x, coords.y, 7)
 end
 
 function add_defensive_uno(player)
@@ -488,6 +513,14 @@ function handle_wild_selection_mode_input()
   end
 end
 
+function handle_game_over_mode_input()
+  for i = 0, 5 do
+    if btnp(i) then
+      _init()
+    end
+  end
+end
+
 function generate_deck()
   deck = {}
   for color = 0, 3, 1 do
@@ -585,6 +618,12 @@ function draw_first_hand()
 end
 
 function resolve_card(last_card)
+
+  -- check game over status
+  if #players[current_player].hand == 0 then
+    is_game_over_mode = true
+    return
+  end
 
   -- handle uno status
   vulnerable_player = 0
