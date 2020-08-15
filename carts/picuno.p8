@@ -4,6 +4,10 @@ __lua__
 
 -- TODO:
 -- 6. UNO mechanic 
+--   remaining:
+--   a. ~make AI call uno for themselves~
+--   b. make AI call uno against others
+--   c. visuals + sound effect
 -- 1. game over
 -- 2. player should be able to play card they draw
 -- 3. more AIs
