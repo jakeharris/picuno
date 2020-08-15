@@ -50,6 +50,7 @@ DISCARD_COORDS = {
 deck = {}
 players = {}
 discard = {}
+sprite_render_list = {}
 current_player = 1
 cursor = 1
 leftmost = 1
@@ -87,6 +88,7 @@ function _init()
   is_wild_selection_mode = false
   wild_cursor = 1
   is_uno_called = false
+  sprite_render_list = {}
   vulnerable_player = 0
 
   print_deck()
@@ -99,6 +101,9 @@ function _init()
 end
 
 function _update()
+
+  clean_sprite_render_list()
+
   if current_player == 1 then
     if is_wild_selection_mode then
       handle_wild_selection_mode_input()
@@ -143,7 +148,8 @@ function _draw()
     render_cursor()
   end
 
-  render_uno_call()
+  render_sprites()
+
   --render_debug()
 end
 
@@ -304,9 +310,42 @@ function render_deck()
   print(#deck, coords.x + CARD_CONSTS.width / 2, coords.y + CARD_CONSTS.height / 2, 7) -- white
 end
 
-function render_uno_call()
-  if is_uno_called then
-    pset(127, 127, 7)
+function add_uno_call_sprites(player)
+  local x = 0
+  local y = 0
+  local flip_x = false
+  local duration = 1
+
+  if player == 1 then
+    x = 64
+    y = 96 - 8
+  elseif #players == 2 then
+    if player == 2 then
+
+    end
+  elseif #players == 3 then
+
+  elseif #players == 4 then
+    if player == 2 then
+      x = #players[player].name * 4 + 2
+      y = 32
+    elseif player == 3 then
+      x = 64 + #players[player].name * 2 + 2
+      y = 2
+    elseif player == 4 then
+      x = 128 - #players[player].name * 4 - 16 - 4
+      y = 32
+      flip_x = true
+    end
+  end
+
+  add_sprite_to_render_list(4, x, y, duration, 2, 1, flip_x)
+  add_sprite_to_render_list(6, x, y, duration, 2, 1)
+end
+
+function render_sprites()
+  for sprite in all(sprite_render_list) do
+    spr(sprite.n, sprite.x, sprite.y, sprite.w, sprite.h, sprite.flip_x, sprite.flip_y)
   end
 end
 
@@ -346,6 +385,7 @@ function handle_input()
       vulnerable_player = 0
     else
       is_uno_called = true
+      add_uno_call_sprites(1)
     end
   end
 
@@ -560,6 +600,25 @@ function get_player_display_color(player)
   end
 end
 
+function add_sprite_to_render_list(n, x, y, duration, w, h, flip_x, flip_y)
+  if w == nil then w = 1 end
+  if h == nil then h = 1 end
+  if flip_x == nil then flip_x = false end
+  if flip_y == nil then flip_y = false end
+
+  local sprite = { n = n, x = x, y = y, duration = duration, w = w, h = h, flip_x = flip_x, flip_y = flip_y, timestamp = time() }
+  add(sprite_render_list, sprite)
+end
+
+function clean_sprite_render_list()
+  local to_clean = {}
+  for sprite in all(sprite_render_list) do
+    if sprite.timestamp + sprite.duration < time() then
+      del(sprite_render_list, sprite)
+    end
+  end
+end
+
 -- AI LAND
 function kaiba(player)
 -- screw the rules, i've got money
@@ -576,7 +635,10 @@ function joey(player)
         card.color = flr(rnd(4))
       end
       if #players[player].hand == 1 then
-        if flr(rnd(2)) == 1 then is_uno_called = true end -- coin flip
+        if flr(rnd(2)) == 1 then -- coin flip
+          is_uno_called = true 
+          add_uno_call_sprites(player)
+        end 
       end
       resolve_card(card)
       add(discard, card)
@@ -592,7 +654,10 @@ function joey(player)
       card.color = flr(rnd(4))
     end
     if #players[player].hand == 1 then
-      if flr(rnd(2)) == 1 then is_uno_called = true end -- coin flip
+      if flr(rnd(2)) == 1 then -- coin flip
+        is_uno_called = true 
+        add_uno_call_sprites(player)
+      end 
     end
     resolve_card(card)
     add(discard, card)
