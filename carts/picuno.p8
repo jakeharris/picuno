@@ -11,7 +11,7 @@ __lua__
 -- 5. scoring + rounds
 
 -- bugs:
--- FIXT: We saw a white wild played by an NPC...is this a thing? Unsure whether we were in a bad state.
+-- NONE we're too GOOD for bugs
 
 
 CARD_CONSTS = {}
