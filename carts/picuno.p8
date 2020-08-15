@@ -548,7 +548,7 @@ function resolve_card(last_card)
   -- handle uno status
   vulnerable_player = 0
   if #players[current_player].hand == 1 and is_uno_called then
-    sfx(4) -- uno sfx
+    sfx(3) -- uno sfx
   elseif #players[current_player].hand == 1 and not is_uno_called then
     vulnerable_player = current_player
     sfx(1) -- play card sfx
