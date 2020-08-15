@@ -508,14 +508,13 @@ function resolve_card(last_card)
   -- handle uno status
   vulnerable_player = 0
   if #players[current_player].hand == 1 and is_uno_called then
-    sfx(4)
+    sfx(4) -- uno sfx
   elseif #players[current_player].hand == 1 and not is_uno_called then
     vulnerable_player = current_player
-    sfx(1)
+    sfx(1) -- play card sfx
   else
-    sfx(1) -- hmmmmmm
+    sfx(1) -- hmmmmmm, this may be a problem later when it collides with the later sound effect
   end
-  is_uno_called = false
 
   -- maybe a delay
 
@@ -549,6 +548,8 @@ function increment_player()
   elseif current_player < 1 then 
     current_player = #players
   end
+
+  is_uno_called = false
 end
 
 function get_player_display_color(player)
@@ -574,6 +575,9 @@ function joey(player)
       if card.color == 4 then -- if wild
         card.color = flr(rnd(4))
       end
+      if #players[player].hand == 1 then
+        if flr(rnd(2)) == 1 then is_uno_called = true end -- coin flip
+      end
       resolve_card(card)
       add(discard, card)
       return
@@ -586,6 +590,9 @@ function joey(player)
     card = del(players[player].hand, card)
     if card.color == 4 then -- if wild
       card.color = flr(rnd(4))
+    end
+    if #players[player].hand == 1 then
+      if flr(rnd(2)) == 1 then is_uno_called = true end -- coin flip
     end
     resolve_card(card)
     add(discard, card)
