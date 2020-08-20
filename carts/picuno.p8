@@ -569,6 +569,18 @@ function handle_play_or_keep_mode_input()
     play_or_keep_cursor = 1
     play_or_keep_card = nil
   end
+
+  if btnp(5) then -- x/secondary/x button
+    if vulnerable_player > 1 then
+      add(players[vulnerable_player].hand, draw(deck))
+      add(players[vulnerable_player].hand, draw(deck))
+      vulnerable_player = 0
+      clear_ai_call_timers()
+    else
+      is_uno_called = true
+      add_defensive_uno(1)
+    end
+  end
 end
 
 function handle_wild_selection_mode_input()
