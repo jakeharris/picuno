@@ -73,7 +73,7 @@ function _init()
     { name = 'you', hand = {}, ai = nil, color = nil},
     { name = 'jOEY', hand = {}, ai = joey, color = 9, max_reaction_time = 2},
     { name = 'mAI', hand = {}, ai = mai, color = 4, max_reaction_time = 1},
-    { name = 'gOEY', hand = {}, ai = joey, color = 14, max_reaction_time = 1}
+    { name = 'sOLOMON', hand = {}, ai = solomon, color = 14, max_reaction_time = 2}
   }
 
   for i = 1, #players do
@@ -943,6 +943,105 @@ function get_mai_wild_color(hand)
   else
     return highest_value_card.color
   end
+end
+
+function solomon(player)
+  -- GRANDPA
+  -- always tries to keep a balance between all of the colors in his hand
+  -- saves wilds until last
+  -- calls less often, but defensively calls most of the time
+
+  -- @todo: consider bailing and just playing any valid card if we can't
+  -- play a card in the most common color
+  -- @todo: deprioritize wilds
+
+  local color_counts = {
+    { name='red', count=0 },
+    { name='green', count=0 },
+    { name='blue', count=0 },
+    { name='yellow', count=0 },
+    { name='wild', count=0 }
+  }
+  local playable_cards = {}
+  for card in all(players[player].hand) do
+    if can_play(card) then add(playable_cards, card) end
+    color_counts[card.color].count += 1
+  end
+
+  local best_card = nil
+  for color in sort(color_counts, compare_color_counts) do
+    local color_index = get_color_index_by_name(color.name)
+    for card in filter_by_color(playable_cards, color_index) do
+      if best_card == nil then
+        best_card = card
+      elseif card.rank > best_card.rank then
+        best_card = card
+      end
+    end
+  end
+
+  if best_card == nil then
+    local card = draw()
+    if can_play(card) then
+      if card.color == 4 then -- if wild
+        card.color = sort(color_counts, compare_color_counts)[1]
+      end
+      resolve_card(card)
+      add(discard, card)
+      if #players[player].hand == 1 then
+        if flr(rnd(3)) > 0 then -- pretty likely
+          is_uno_called = true
+          add_defensive_uno(player)
+        end
+      end
+    else
+      add(players[player].hand, card)
+      increment_player()
+    end
+  else
+    del(players[player].hand, best_card)
+    if best_card.color == 4 then -- if wild
+      best_card.color = sort(color_counts, compare_color_counts)[1]
+    end
+    resolve_card(best_card)
+    add(discard, best_card)
+    if #players[player].hand == 1 then
+      if flr(rnd(3)) > 0 then -- pretty likely
+        is_uno_called = true
+        add_defensive_uno(player)
+      end
+    end
+  end
+end
+
+function compare_color_counts(a, b)
+  return a.count - b.count
+end
+
+function get_color_index_by_name(name)
+  if name == 'red' then
+    return 0
+  elseif name == 'green' then
+    return 1
+  elseif name == 'blue' then
+    return 2
+  elseif name == 'yellow' then
+    return 3
+  elseif name =='wild' then
+    return 4
+  end
+end
+
+function filter_by_color(cards, color)
+  local filtered = {}
+
+  for card in cards do
+    if card.color == color then
+      add(filtered, card)
+    end
+  end
+
+  return filtered
 end
 
 -- LIBRARY FUNCTIONS
