@@ -825,6 +825,7 @@ function kaiba(player)
 end
 
 function joey(player)
+  -- kinda dumb
   for card in all(shuffle(players[player].hand)) do
     if can_play(card) then
       card = del(players[player].hand, card)
