@@ -71,8 +71,8 @@ function _init()
 
   players = {
     { name = 'you', hand = {}, ai = nil, color = nil},
-    { name = 'jOEY', hand = {}, ai = joey, color = 9, max_reaction_time = 5},
-    { name = 'bOEY', hand = {}, ai = joey, color = 4, max_reaction_time = 1},
+    { name = 'jOEY', hand = {}, ai = joey, color = 9, max_reaction_time = 2},
+    { name = 'mAI', hand = {}, ai = mai, color = 4, max_reaction_time = 1},
     { name = 'gOEY', hand = {}, ai = joey, color = 14, max_reaction_time = 1}
   }
 
@@ -861,6 +861,74 @@ function joey(player)
     return
   else
     increment_player()
+  end
+end
+
+function mai(player)
+  -- self-interested and lonely, I guess?
+  -- anyways she's always going to play her highest-value card
+  --   and she calls pretty aggressively, but forgets to be defensive
+  local best_card = nil
+  for card in all(players[player].hand) do
+    if can_play(card) then
+      if best_card == nil then
+        best_card = card
+      elseif card.rank > best_card.rank then
+        best_card = card
+      end
+    end
+  end
+
+  if best_card == nil then
+    local card = draw()
+    if can_play(card) then
+      if card.color == 4 then -- if wild
+        card.color = get_mai_wild_color(players[player].hand)
+      end
+      resolve_card(card)
+      add(discard, card)
+      if #players[player].hand == 1 then
+        if flr(rnd(3)) == 1 then -- sorta unlikely
+          is_uno_called = true
+          add_defensive_uno(player)
+        end
+      end
+    else
+      add(players[player].hand, card)
+      increment_player()
+    end
+  else
+    del(players[player].hand, best_card)
+    if best_card.color == 4 then -- if wild
+      best_card.color = get_mai_wild_color(players[player].hand)
+    end
+    resolve_card(best_card)
+    add(discard, best_card)
+    if #players[player].hand == 1 then
+      if flr(rnd(3)) == 1 then -- sorta unlikely
+        is_uno_called = true
+        add_defensive_uno(player)
+      end
+    end
+  end
+end
+
+function get_mai_wild_color(hand)
+  -- make sure the wild isn't still in her hand before
+  -- doing this...
+  local highest_value_card = nil -- find the highest value card's color, and choose that
+  for card in all(hand) do
+    if highest_value_card == nil then
+      highest_value_card = card
+    elseif highest_value_card.rank < card.rank then
+      highest_value_card = card
+    end
+  end
+
+  if highest_value_card.color == 4 then -- if it's a wild, then she'll play it next turn anyways, so who cares
+    return flr(rnd(4))
+  else
+    return highest_value_card.color
   end
 end
 
