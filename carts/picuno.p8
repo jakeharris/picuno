@@ -381,8 +381,8 @@ function add_defensive_uno(player)
   local duration = 1
 
   if player == 1 then
-    x = 64
-    y = 96 - 8
+    x = 64 + (CARD_CONSTS.width / 2) + 2
+    y = 96 - 8 + 2
   elseif #players == 2 then
     if player == 2 then
       x = 64 + #players[player].name * 2 + 2
@@ -421,7 +421,7 @@ function add_offensive_uno(player)
   local duration = 1
 
   if player == 1 then
-    x = 64 - 3 * 8 / 2
+    x = 64 + (CARD_CONSTS.width / 2) + 2
     y = 96 - 3 * 8
   elseif #players == 2 then
     if player == 2 then
