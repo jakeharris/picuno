@@ -4,7 +4,7 @@ __lua__
 
 -- TODO:
 -- 3. more AIs
--- 4. splash screen (& start menu?)
+-- 4. start screen
 -- 8. animations (drawing and playing)
 -- 5. scoring + rounds
 
