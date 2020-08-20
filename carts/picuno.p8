@@ -3,7 +3,6 @@ version 29
 __lua__
 
 -- TODO:
--- 2. player should be able to play card they draw
 -- 3. more AIs
 -- 4. splash screen (& start menu?)
 -- 8. animations (drawing and playing)
@@ -56,6 +55,9 @@ is_uno_called = false
 vulnerable_player = 0
 wild_cursor = 1
 is_game_over_mode = false
+is_play_or_keep_mode = false
+play_or_keep_card = nil
+play_or_keep_cursor = 1
 debug_string = ''
 
 wait = 0
@@ -89,6 +91,9 @@ function _init()
   vulnerable_player = 0
   ai_call_timers = {}
   is_game_over_mode = false
+  is_play_or_keep_mode = false
+  play_or_keep_card = nil
+  play_or_keep_cursor = 1
 
   print_deck()
   render_hand()
@@ -96,7 +101,6 @@ function _init()
   discard = {}
   add(discard, draw(deck))
   render_discard()
-  
 end
 
 function _update()
@@ -114,6 +118,8 @@ function _update()
       handle_wild_selection_mode_input()
     elseif is_on_deck then
       handle_deck_input()
+    elseif is_play_or_keep_mode then
+      handle_play_or_keep_mode_input()
     else
       handle_input()
     end
@@ -155,6 +161,9 @@ function _draw()
     render_wild_selection()
   elseif is_on_deck then
     render_deck_cursor()
+  elseif is_play_or_keep_mode then
+    render_play_or_keep_card()
+    render_play_or_keep_cursor()
   elseif current_player == 1 then
     render_cursor()
   end
@@ -330,6 +339,41 @@ function render_game_over_screen()
   print(winner_text, coords.x, coords.y, 7)
 end
 
+function render_play_or_keep_card()
+
+  if play_or_keep_card == nil then return end
+
+  local x = 64 - (CARD_CONSTS.width / 2)
+  local y = DISCARD_COORDS.top + CARD_CONSTS.height + 2
+
+  render_card(play_or_keep_card, x, y)
+end
+
+function render_play_or_keep_cursor()
+
+  if play_or_keep_card == nil then return end
+
+  local play_or_keep_x = 64 + (CARD_CONSTS.width / 2) + 2
+  local play_x = play_or_keep_x
+  local play_y = DISCARD_COORDS.top + CARD_CONSTS.height + 2
+  local keep_x = play_or_keep_x
+  local keep_y = DISCARD_COORDS.top + CARD_CONSTS.height + 2 + 6
+  local cursor_x = play_or_keep_x + 4 * 4 + 1
+  local cursor_y = 0
+
+  if play_or_keep_cursor == 1 then 
+    play_x += 1 
+    cursor_y = play_y + 1
+  else 
+    keep_x += 1 
+    cursor_y = keep_y + 1
+  end
+
+  print('play', play_x, play_y, 7) -- white
+  print('keep', keep_x, keep_y, 7) -- white
+  spr(3, cursor_x, cursor_y)
+end
+
 function add_defensive_uno(player)
   local x = 0
   local y = 0
@@ -482,10 +526,48 @@ function handle_deck_input()
   end
 
   if btnp(4) then -- z/action/square button
-    add(players[1].hand, draw())
-    sort(players[1].hand, compare_cards)
-    increment_player()
+    play_or_keep_card = draw()
+
+    if can_play(play_or_keep_card) then
+      is_play_or_keep_mode = true
+      play_or_keep_cursor = 1 -- should always start on "play"
+    else
+      add(players[1].hand, play_or_keep_card)
+      sort(players[1].hand, compare_cards)
+      increment_player()
+    end
+
     is_on_deck = false
+  end
+end
+
+function handle_play_or_keep_mode_input()
+  if btnp(2) or btnp(3) then -- up or down
+    if play_or_keep_cursor == 2 then 
+      play_or_keep_cursor = 1 
+    else 
+      play_or_keep_cursor = 2
+    end
+  end
+
+  if btnp(4) then -- z/action/square button
+    if play_or_keep_cursor == 1 then -- play the card
+      add(discard, play_or_keep_card)
+
+      if play_or_keep_card.color == 4 then
+        is_wild_selection_mode = true
+      else
+        resolve_card(play_or_keep_card)
+      end
+    else -- add it to hand
+      add(players[1].hand, play_or_keep_card)
+      sort(players[1].hand, compare_cards)
+      increment_player()
+    end
+
+    is_play_or_keep_mode = false
+    play_or_keep_cursor = 1
+    play_or_keep_card = nil
   end
 end
 
@@ -729,6 +811,7 @@ function handle_ai_call_timers()
 
       vulnerable_player = 0
       clear_ai_call_timers()
+      break
     end
   end
 end
