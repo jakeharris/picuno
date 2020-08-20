@@ -17,7 +17,7 @@ CARD_CONSTS.width = 16
 CARD_CONSTS.height = 24
 
 -- colors: red 0, green 1, blue 2, yellow 3, wild 4
-CARD_COLORS = { 
+CARD_COLORS = {
   [0] = 8, -- red
   [1] = 11, -- green
   [2] = 12, -- blue
@@ -68,7 +68,7 @@ function _init()
   deck = {}
   deck = generate_deck()
   deck = shuffle(deck)
-  
+
   players = {
     { name = 'you', hand = {}, ai = nil, color = nil},
     { name = 'jOEY', hand = {}, ai = joey, color = 9, max_reaction_time = 5},
@@ -78,8 +78,8 @@ function _init()
 
   for i = 1, #players do
     players[i].hand = draw_first_hand()
-  end 
-  
+  end
+
   current_player = 1
   cursor = 1
   leftmost = 1
@@ -123,11 +123,11 @@ function _update()
     else
       handle_input()
     end
-  else 
+  else
     if wait >= 30 then
       players[current_player]['ai'](current_player)
       wait = 0
-    else 
+    else
       if btnp(5) then
         if vulnerable_player > 1 then
           add(players[vulnerable_player].hand, draw(deck))
@@ -138,7 +138,7 @@ function _update()
           vulnerable_player = 0
         end
       end
-      wait += 1 
+      wait += 1
     end
   end
 end
@@ -176,7 +176,7 @@ end
 function get_display_rank(rank)
   if rank < 10 then
     return rank -- @todo: will we run into an issue with string conversion?
-  else 
+  else
     return SPECIAL_RANKS[rank]
   end
 end
@@ -185,7 +185,7 @@ function render_card(card, x, y, is_active)
   local color = 5 -- gray/inactive
   if is_active == nil then is_active = true end
   if is_active then color = CARD_COLORS[card.color] end
-  
+
   rectfill(x, y, x + CARD_CONSTS.width, y + CARD_CONSTS.height, color)
   print(get_display_rank(card.rank), x + 1, y + 1, 0) -- black
   print(get_display_rank(card.rank), x + CARD_CONSTS.width - 3, y + CARD_CONSTS.height - 5, 0)
@@ -193,9 +193,9 @@ end
 
 function render_hand()
   local visible_cards = subseq(players[1].hand, leftmost, leftmost + 6)
-  for index, card in pairs(visible_cards) do 
+  for index, card in pairs(visible_cards) do
     local x = (index - 1) * (CARD_CONSTS.width + 2)
-    local y = 96 + 4 -- a little more than 3/4s down the screen 
+    local y = 96 + 4 -- a little more than 3/4s down the screen
     if index == cursor and not is_on_deck and current_player == 1 then
       y -= 1
     end
@@ -222,8 +222,8 @@ end
 
 function render_discard()
   render_card(
-    discard[#discard], 
-    DISCARD_COORDS.left, 
+    discard[#discard],
+    DISCARD_COORDS.left,
     DISCARD_COORDS.top
   )
 end
@@ -361,11 +361,11 @@ function render_play_or_keep_cursor()
   local cursor_x = play_or_keep_x + 4 * 4 + 1
   local cursor_y = 0
 
-  if play_or_keep_cursor == 1 then 
-    play_x += 1 
+  if play_or_keep_cursor == 1 then
+    play_x += 1
     cursor_y = play_y + 1
-  else 
-    keep_x += 1 
+  else
+    keep_x += 1
     cursor_y = keep_y + 1
   end
 
@@ -543,9 +543,9 @@ end
 
 function handle_play_or_keep_mode_input()
   if btnp(2) or btnp(3) then -- up or down
-    if play_or_keep_cursor == 2 then 
-      play_or_keep_cursor = 1 
-    else 
+    if play_or_keep_cursor == 2 then
+      play_or_keep_cursor = 1
+    else
       play_or_keep_cursor = 2
     end
   end
@@ -573,10 +573,10 @@ end
 
 function handle_wild_selection_mode_input()
   if btnp(3) then -- down
-    if wild_cursor == 4 then 
-      wild_cursor = 1 
-    else 
-      wild_cursor += 1 
+    if wild_cursor == 4 then
+      wild_cursor = 1
+    else
+      wild_cursor += 1
     end
   end
 
@@ -606,7 +606,7 @@ end
 function generate_deck()
   deck = {}
   for color = 0, 3, 1 do
-    for rank = 0, 12, 1 do 
+    for rank = 0, 12, 1 do
       local card = {}
       card.color = color
       card.rank = rank
@@ -618,8 +618,8 @@ function generate_deck()
     end
   end
 
-  for i = 0, 3 do 
-    add(deck, { color = 4, rank = 13}) 
+  for i = 0, 3 do
+    add(deck, { color = 4, rank = 13})
     add(deck, { color = 4, rank = 14})
   end
 
@@ -746,9 +746,9 @@ end
 function increment_player()
   current_player += turn_order
 
-  if current_player > #players then 
+  if current_player > #players then
     current_player = 1
-  elseif current_player < 1 then 
+  elseif current_player < 1 then
     current_player = #players
   end
 
@@ -756,10 +756,10 @@ function increment_player()
 end
 
 function get_player_display_color(player)
-  if current_player == player then 
-    return players[player].color 
-  else 
-    return INACTIVE_PLAYER_COLOR 
+  if current_player == player then
+    return players[player].color
+  else
+    return INACTIVE_PLAYER_COLOR
   end
 end
 
@@ -833,9 +833,9 @@ function joey(player)
       end
       if #players[player].hand == 1 then
         if flr(rnd(2)) == 1 then -- coin flip
-          is_uno_called = true 
+          is_uno_called = true
           add_defensive_uno(player)
-        end 
+        end
       end
       resolve_card(card)
       add(discard, card)
@@ -852,9 +852,9 @@ function joey(player)
     end
     if #players[player].hand == 1 then
       if flr(rnd(2)) == 1 then -- coin flip
-        is_uno_called = true 
+        is_uno_called = true
         add_defensive_uno(player)
-      end 
+      end
     end
     resolve_card(card)
     add(discard, card)
@@ -887,7 +887,7 @@ function subseq(seq, from, to)
 end
 
 function sort(seq, comparator) -- bubble sort
-  repeat 
+  repeat
     local done = true
     for i = 1, #seq - 1 do
       if comparator(seq[i], seq[i+1]) > 0 then
