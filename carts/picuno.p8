@@ -99,7 +99,7 @@ function _init()
   render_hand()
 
   discard = {}
-  add(discard, draw(deck))
+  add(discard, draw())
   render_discard()
 end
 
@@ -130,8 +130,8 @@ function _update()
     else
       if btnp(5) then
         if vulnerable_player > 1 then
-          add(players[vulnerable_player].hand, draw(deck))
-          add(players[vulnerable_player].hand, draw(deck))
+          add(players[vulnerable_player].hand, draw())
+          add(players[vulnerable_player].hand, draw())
           add_offensive_uno(1)
           vulnerable_player = 0
         else
@@ -489,8 +489,8 @@ function handle_input()
 
   if btnp(5) then -- x/secondary/x button
     if vulnerable_player > 1 then
-      add(players[vulnerable_player].hand, draw(deck))
-      add(players[vulnerable_player].hand, draw(deck))
+      add(players[vulnerable_player].hand, draw())
+      add(players[vulnerable_player].hand, draw())
       vulnerable_player = 0
       clear_ai_call_timers()
     else
@@ -572,8 +572,8 @@ function handle_play_or_keep_mode_input()
 
   if btnp(5) then -- x/secondary/x button
     if vulnerable_player > 1 then
-      add(players[vulnerable_player].hand, draw(deck))
-      add(players[vulnerable_player].hand, draw(deck))
+      add(players[vulnerable_player].hand, draw())
+      add(players[vulnerable_player].hand, draw())
       vulnerable_player = 0
       clear_ai_call_timers()
     else
@@ -816,8 +816,8 @@ function handle_ai_call_timers()
       if vulnerable_player == timer.player then
         add_defensive_uno(timer.player)
       else
-        add(players[vulnerable_player].hand, draw(deck))
-        add(players[vulnerable_player].hand, draw(deck))
+        add(players[vulnerable_player].hand, draw())
+        add(players[vulnerable_player].hand, draw())
         add_offensive_uno(timer.player)
       end
 
