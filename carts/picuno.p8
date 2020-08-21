@@ -951,91 +951,103 @@ function solomon(player)
   -- saves wilds until last
   -- calls less often, but defensively calls most of the time
 
-  -- @todo: consider bailing and just playing any valid card if we can't
   -- play a card in the most common color
   -- @todo: deprioritize wilds
 
-  local color_counts = {
-    { name='red', count=0 },
-    { name='green', count=0 },
-    { name='blue', count=0 },
-    { name='yellow', count=0 },
-    { name='wild', count=0 }
-  }
-  local playable_cards = {}
-  for card in all(players[player].hand) do
-    if can_play(card) then add(playable_cards, card) end
-    color_counts[card.color].count += 1
-  end
+  local best_card = _solomon_find_best_card(players[player].hand)
 
-  local best_card = nil
-  for color in sort(color_counts, compare_color_counts) do
-    local color_index = get_color_index_by_name(color.name)
-    for card in filter_by_color(playable_cards, color_index) do
-      if best_card == nil then
-        best_card = card
-      elseif card.rank > best_card.rank then
-        best_card = card
-      end
+  if best_card then
+    del(players[player].hand, best_card)
+    _solomon_play_card(best_card)
+    if #players[player].hand == 1 then
+      _solomon_try_defensive_uno(player)
     end
-  end
-
-  if best_card == nil then
+  else
     local card = draw()
     if can_play(card) then
-      if card.color == 4 then -- if wild
-        card.color = sort(color_counts, compare_color_counts)[1]
-      end
-      resolve_card(card)
-      add(discard, card)
+      _solomon_play_card(card)
       if #players[player].hand == 1 then
-        if flr(rnd(3)) > 0 then -- pretty likely
-          is_uno_called = true
-          add_defensive_uno(player)
-        end
+        _solomon_try_defensive_uno(player)
       end
     else
       add(players[player].hand, card)
       increment_player()
     end
+  end
+end
+
+function _solomon_find_best_card(hand)
+
+  local color_counts = {
+    { color=0, count=0 },
+    { color=1, count=0 },
+    { color=2, count=0 },
+    { color=3, count=0 },
+    { color=4, count=0 },
+  }
+  local playable_cards = {}
+  local best_card = nil
+
+  -- count the number of cards in each color
+  -- and also, determine which cards are playable
+  for card in all(hand) do
+    if can_play(card) then add(playable_cards, card) end
+    color_counts[card.color + 1].count += 1
+  end
+
+  -- start with the most plentiful color
+  -- if there are playable cards in this color, return
+  --   the one with the highest rank
+  -- if there are not, move to the next most plentiful color
+  for color in all(sort(color_counts, compare_color_counts)) do
+    playable_cards_in_color = filter_by_color(playable_cards, color.id)
+    if #playable_cards_in_color > 0 then
+      playable_cards_in_color = sort(playable_cards_in_color, compare_cards)
+      best_card = playable_cards_in_color[#playable_cards_in_color] -- last will be highest rank
+      if best_card then break end
+    end
+  end
+
+  if best_card then
+    printh('best card: ' .. best_card.color .. ',' .. best_card.rank)
   else
-    del(players[player].hand, best_card)
-    if best_card.color == 4 then -- if wild
-      best_card.color = sort(color_counts, compare_color_counts)[1]
-    end
-    resolve_card(best_card)
-    add(discard, best_card)
-    if #players[player].hand == 1 then
-      if flr(rnd(3)) > 0 then -- pretty likely
-        is_uno_called = true
-        add_defensive_uno(player)
-      end
-    end
+    printh('best card is nil')
+  end
+
+  return best_card
+end
+
+function _solomon_play_card(card) -- this could be generalized for all AIs, taking a wild-picking function
+  if card.color == 4 then -- if wild
+    card.color = sort(color_counts, compare_color_counts)[1]
+  end
+  resolve_card(card)
+  add(discard, card)
+end
+
+function _solomon_try_defensive_uno(player)
+  if flr(rnd(3)) > 0 then -- pretty likely
+    is_uno_called = true
+    add_defensive_uno(player)
   end
 end
 
 function compare_color_counts(a, b)
-  return a.count - b.count
-end
-
-function get_color_index_by_name(name)
-  if name == 'red' then
-    return 0
-  elseif name == 'green' then
+  -- deprioritize wilds
+  if a.color == 4 and b.color != 4 then
+    return -1
+  elseif a.color != 4 and b.color == 4 then
     return 1
-  elseif name == 'blue' then
-    return 2
-  elseif name == 'yellow' then
-    return 3
-  elseif name =='wild' then
-    return 4
+  else
+    -- order otherwise by number of cards in that color
+    return a.count - b.count
   end
 end
 
 function filter_by_color(cards, color)
   local filtered = {}
 
-  for card in cards do
+  for card in all(cards) do
     if card.color == color then
       add(filtered, card)
     end
