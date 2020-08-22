@@ -728,7 +728,11 @@ function draw()
 end
 
 function print_deck()
-  for index, card in pairs(deck) do
+  print_hidden_cards(deck)
+end
+
+function print_hidden_cards(cards)
+  for index, card in pairs(cards) do
     print(get_display_rank(card.rank), flr((index - 1) / 10) * 10, ((index - 1) % 10) * 6, CARD_COLORS[card.color])
   end
 end
