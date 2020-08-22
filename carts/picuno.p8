@@ -112,9 +112,7 @@ function _update()
     if not is_start_screen_mode then
         local card = draw()
         add(discard, card)
-        if card.color == 4 then
-          is_wild_selection_mode = true
-        elseif card.rank >= 10 then
+        elseif card.rank == 10 or card.rank == 11 or card.rank == 12 then
           resolve_card(card)
         end
       return
