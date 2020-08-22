@@ -1014,18 +1014,20 @@ function solomon(player)
   -- play a card in the most common color
   -- @todo: deprioritize wilds
 
-  local best_card = _solomon_find_best_card(players[player].hand)
+  local result = _solomon_find_best_card(players[player].hand)
+  local best_card = result.best_card
+  local color_counts = result.color_counts
 
   if best_card then
     del(players[player].hand, best_card)
-    _solomon_play_card(best_card)
+    _solomon_play_card(best_card, color_counts)
     if #players[player].hand == 1 then
       _solomon_try_defensive_uno(player)
     end
   else
     local card = draw()
     if can_play(card) then
-      _solomon_play_card(card)
+      _solomon_play_card(card, color_counts)
       if #players[player].hand == 1 then
         _solomon_try_defensive_uno(player)
       end
@@ -1039,11 +1041,11 @@ end
 function _solomon_find_best_card(hand)
 
   local color_counts = {
-    { color=0, count=0 },
-    { color=1, count=0 },
-    { color=2, count=0 },
-    { color=3, count=0 },
-    { color=4, count=0 },
+    { id=0, count=0 },
+    { id=1, count=0 },
+    { id=2, count=0 },
+    { id=3, count=0 },
+    { id=4, count=0 },
   }
   local playable_cards = {}
   local best_card = nil
@@ -1068,18 +1070,12 @@ function _solomon_find_best_card(hand)
     end
   end
 
-  if best_card then
-    printh('best card: ' .. best_card.color .. ',' .. best_card.rank)
-  else
-    printh('best card is nil')
-  end
-
-  return best_card
+  return { best_card = best_card, color_counts = color_counts }
 end
 
-function _solomon_play_card(card) -- this could be generalized for all AIs, taking a wild-picking function
+function _solomon_play_card(card, color_counts) -- this could be generalized for all AIs, taking a wild-picking function
   if card.color == 4 then -- if wild
-    card.color = sort(color_counts, compare_color_counts)[1]
+    card.color = sort(color_counts, compare_color_counts)[1].id
   end
   resolve_card(card)
   add(discard, card)
@@ -1095,12 +1091,12 @@ end
 function compare_color_counts(a, b)
   -- deprioritize wilds
   if a.color == 4 and b.color != 4 then
-    return -1
-  elseif a.color != 4 and b.color == 4 then
     return 1
+  elseif a.color != 4 and b.color == 4 then
+    return -1
   else
     -- order otherwise by number of cards in that color
-    return a.count - b.count
+    return b.count - a.count
   end
 end
 
