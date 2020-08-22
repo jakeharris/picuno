@@ -112,7 +112,7 @@ function _update()
     if not is_start_screen_mode then
         local card = draw()
         add(discard, card)
-        elseif card.rank == 10 or card.rank == 11 or card.rank == 12 then
+        if card.rank == 10 or card.rank == 11 or card.rank == 12 then
           resolve_card(card)
         end
       return
