@@ -113,6 +113,7 @@ function _update()
         local card = draw()
         add(discard, card)
         if card.rank == 10 or card.rank == 11 or card.rank == 12 then
+          current_player = #players
           resolve_card(card)
         end
       return
