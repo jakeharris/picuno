@@ -97,12 +97,8 @@ function _init()
   play_or_keep_card = nil
   play_or_keep_cursor = 1
 
-  print_deck()
-  render_hand()
-
   discard = {}
-  add(discard, draw())
-  render_discard()
+
 end
 
 function _update()
@@ -111,6 +107,17 @@ function _update()
       if btnp(i) then
         is_start_screen_mode = false
       end
+    end
+
+    if not is_start_screen_mode then
+        local card = draw()
+        add(discard, card)
+        if card.color == 4 then
+          is_wild_selection_mode = true
+        elseif card.rank >= 10 then
+          resolve_card(card)
+        end
+      return
     end
   end
 
@@ -890,7 +897,7 @@ end
 
 -- AI LAND
 function kaiba(player)
--- screw the rules, i've got money
+  -- screw the rules, i've got money
   card = del(players[player].hand, players[player].hand[1])
   resolve_card(card)
   add(discard, card)
