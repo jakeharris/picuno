@@ -764,7 +764,7 @@ end
 
 function draw_first_hand()
   local hand = {}
-  for i = 1, 2 do
+  for i = 1, 7 do
     add(hand, draw())
   end
   hand = sort(hand, compare_cards)
