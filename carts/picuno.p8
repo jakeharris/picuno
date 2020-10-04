@@ -99,6 +99,7 @@ function _init()
 
   discard = {}
 
+  play_intro_jingle()
 end
 
 function _update()
@@ -892,6 +893,10 @@ function handle_ai_call_timers()
       break
     end
   end
+end
+
+function play_intro_jingle()
+  music(0)
 end
 
 -- AI LAND
