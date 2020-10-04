@@ -78,10 +78,6 @@ function _init()
     { name = 'sOLOMON', hand = {}, ai = solomon, color = 14, max_reaction_time = 2}
   }
 
-  for i = 1, #players do
-    players[i].hand = draw_first_hand()
-  end
-
   current_player = 1
   cursor = 1
   leftmost = 1
@@ -107,6 +103,9 @@ function _update()
     for i=1,8 do
       if btnp(i) then
         is_start_screen_mode = false
+        for i = 1, #players do
+          players[i].hand = draw_first_hand()
+        end
       end
     end
 
