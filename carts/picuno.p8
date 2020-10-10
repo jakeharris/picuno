@@ -2,6 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 29
 __lua__
 
+-- A simple UNO clone with some AI.
+
 -- TODO:
 -- 3. more AIs
 -- 4. start screen
