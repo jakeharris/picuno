@@ -283,6 +283,8 @@ function render_scroll_arrows()
 end
 
 function render_discard()
+  if #discard == 0 then return end
+
   render_card(
     discard[#discard],
     DISCARD_COORDS.left,
@@ -672,6 +674,7 @@ end
 function handle_game_over_mode_input()
   for i = 0, 5 do
     if btnp(i) then
+      is_start_screen_mode = true
       _init()
     end
   end
