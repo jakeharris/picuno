@@ -11,7 +11,6 @@ __lua__
 -- 5. scoring + rounds
 
 -- bugs:
--- fix: pressing down to draw
 -- fix: Nickey's bug
 
 
@@ -526,10 +525,10 @@ function render_sprites()
 end
 
 function handle_input()
-  if btnp(3) then -- down (not something we actually expect to use; debugging only)
-    add(players[1].hand, draw())
-    players[1].hand = sort(players[1].hand, compare_cards)
-  end
+  -- if btnp(3) then -- down (not something we actually expect to use; debugging only)
+    -- add(players[1].hand, draw())
+    -- players[1].hand = sort(players[1].hand, compare_cards)
+  -- end
 
   if btnp(4) then -- z/action/square button
     selected_card = players[1].hand[leftmost + cursor - 1]
