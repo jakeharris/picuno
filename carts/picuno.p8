@@ -11,7 +11,8 @@ __lua__
 -- 5. scoring + rounds
 
 -- bugs:
--- NONE we're too GOOD for bugs
+-- fix: pressing down to draw
+-- fix: Nickey's bug
 
 
 CARD_CONSTS = {}
