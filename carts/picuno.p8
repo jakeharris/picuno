@@ -11,7 +11,7 @@ __lua__
 -- 5. scoring + rounds
 
 -- bugs:
--- fix: Nickey's bug
+-- NONE because I'm awesome duh
 
 
 CARD_CONSTS = {}
@@ -886,7 +886,7 @@ function handle_ai_call_timers()
     if timer.timestamp + timer.reaction_time < time() then
       if vulnerable_player == timer.player then
         add_defensive_uno(timer.player)
-      else
+      elseif vulnerable_player != 0 then
         add(players[vulnerable_player].hand, draw())
         add(players[vulnerable_player].hand, draw())
         add_offensive_uno(timer.player)
